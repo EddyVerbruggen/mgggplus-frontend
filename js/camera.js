@@ -44,7 +44,7 @@ function cameraIconClicked(projectId, theElement) {
 
   if (isMobile()) {
     navigator.notification.confirm(
-        'U kunt de foto later altijd veranderen.', // message
+        'Deel een foto met andere Triodos klanten. TIP: houd je telefoon horizontaal.', // message
         onConfirmNew, // callback to invoke with index of button pressed
         'Foto toevoegen', // title
         'Foto maken,Foto kiezen,Annuleren'  // buttonLabels
