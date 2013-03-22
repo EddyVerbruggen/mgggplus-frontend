@@ -10,7 +10,7 @@ function captureImage() {
     encodingType:Camera.EncodingType.JPEG,
     sourceType:sourceType, // camera or photoroll, depending on user choice
     targetWidth:398, // = double size for retina
-    targetHeight:266
+    targetHeight:398 // 266
   });
 }
 

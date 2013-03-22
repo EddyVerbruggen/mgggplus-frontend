@@ -34,11 +34,12 @@ header {
   line-height: 40px;
   text-align: center;
   font-weight: bold;
+  border-left: 1px inset white;
 }
 
 header .tab:last-child {
   float: right;
-  border-left: 1px inset white;
+  border-right: 1px inset white;
 }
 
 #map_canvas {
@@ -56,9 +57,10 @@ header .tab:last-child {
 }
 
 .triodosInfoWindow img {
-  margin-right: 30px;
   margin-bottom: 4px;
   border: 1px solid #000;
+  height: auto !important;
+  max-width: 199px !important;
 }
 
 .triodosInfoWindow div.metaInfo {
@@ -69,7 +71,7 @@ header .tab:last-child {
 .camera {
   float: left;
   position: absolute;
-  top: 144px;
+  top: 118px;
   right: 14px;
   z-index: 1001;
 }
