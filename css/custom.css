@@ -21,6 +21,8 @@ input, textarea {
 header {
   height: 40px;
   background-color: black;
+  border-top: 1px inset white;
+  border-bottom: 1px inset white;
 }
 
 .tab {
@@ -31,6 +33,7 @@ header {
   height: 40px;
   line-height: 40px;
   text-align: center;
+  font-weight: bold;
 }
 
 header .tab:last-child {

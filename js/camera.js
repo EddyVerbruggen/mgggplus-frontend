@@ -19,7 +19,8 @@ function onSuccessCamera(imageData) {
 
 //  $.mobile.loading('show');
   // Set a delay so the spinner appears
-//  setTimeout(function() {
+  $(clickedImage).attr('src', theImage); // TODO move to successfunction
+  setTimeout(function() {
     doPost(
       getServiceURL("/user/savephoto"),
       {
@@ -30,7 +31,6 @@ function onSuccessCamera(imageData) {
       function(data) {
         if (data.success) {
           // change the image in the view
-          $(clickedImage).attr('src', theImage);
           showAlert("Op de server opslaan is gelukt");
 //          $.mobile.loading('hide');
         } else {
@@ -39,7 +39,7 @@ function onSuccessCamera(imageData) {
         }
       }
     );
-//  }, 250);
+  }, 250);
 }
 
 function onFailCamera(message) {
