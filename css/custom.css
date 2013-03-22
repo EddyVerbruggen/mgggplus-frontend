@@ -77,25 +77,40 @@ header .tab:last-child {
 }
 
 #page_stream {
-  padding-right: 4px;
+  padding-left: 1px;
 }
 
 #page_stream img {
-  float: left;
-  clear: none;
   border: 1px solid black;
-  margin-left: 5px;
-  margin-top: 5px;
+  clear: none;
+  float: left;
   width: 100px;
-  height: 100px;
+  height: 75px;
+  margin-left: 3px;
+  margin-top: 3px;
 }
 
 @media (min-width:480px) {
   #page_stream img {
-    margin-left: 10px;
-    margin-top: 10px;
+    margin-left: 13px;
+    margin-top: 13px;
+  }
+}
+
+
+@media (min-width:640px) {
+  #page_stream img {
+    margin-left: 6px;
+    margin-top: 6px;
     width: 200px;
-    height: 200px;
+    height: 150px;
+  }
+}
+
+@media (min-width:768px) {
+  #page_stream img {
+    margin-left: 40px;
+    margin-top: 40px;
   }
 }
 

@@ -5,12 +5,12 @@ var clickedImage, sourceType, project = null;
 function captureImage() {
   navigator.camera.getPicture(onSuccessCamera, onFailCamera, {
     quality:50,
-    allowEdit:true, // ignored by Android
+    allowEdit:false, // ignored by Android (testing false, because may solve square imgs @ ios)
     destinationType:Camera.DestinationType.DATA_URL, // base64
     encodingType:Camera.EncodingType.JPEG,
     sourceType:sourceType, // camera or photoroll, depending on user choice
     targetWidth:400, // = double size for retina
-    targetHeight:400 // 266
+    targetHeight:300 // 266
   });
 }
 
