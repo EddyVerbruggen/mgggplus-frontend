@@ -1,1242 +1,167 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/html">
+<html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=0"/>
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <!--meta name="format-detection" content="telephone=no"-->
-  <title>TFG FutureApp</title>
-  <link rel="stylesheet" href="css/themes/default/jquery.mobile-1.3.0.min.css" type="text/css"/>
-  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Gudea:400,700,400italic" type="text/css"/>
-  <link rel="stylesheet" href="css/jquery.mobile.iscrollview.css" type="text/css"/>
-  <link rel="stylesheet" href="css/jquery.mobile.iscrollview-pull.css" type="text/css"/>
-  <link rel="stylesheet" href="css/tfg.css" type="text/css"/>
+  <title>MGGG Plus</title>
+  <link rel="stylesheet" href="css/custom.css" type="text/css"/>
   <script src="js/lib/jquery-1.9.1.min.js"></script>
-  <script src="js/jqm-init.js"></script>
-  <script src="js/lib/jquery.mobile-1.3.0.min.js"></script>
-  <script src="js/lib/jqm.page.params.js"></script>
-  <script src="js/lib/iscroll.js"></script>
-  <script src="js/lib/jquery.mobile.iscrollview.js"></script>
-  <script src="js/tfg.custom.js"></script>
+  <script src="js/custom.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="http://maps.googleapis.com/maps/api/js?sensor=true&language=nl&region=NL"></script>
   <script src="js/camera.js"></script>
   <script src="phonegap.js"></script>
-  <!--script src="childbrowser.js"></script-->
-</head>
-<body>
-
   <script type="text/javascript">
-    $(document).ready(function() {
+    "use strict";
+
+    var initialLocation, clientLocation, map, infoPopup = null;
+
+    $(document).ready(function () {
       // init phonegap
-      document.addEventListener('deviceready', onDeviceReady, false);
+      if (isMobile()) {
+        document.addEventListener('deviceready', onDeviceReady, false);
+      } else {
+        onDeviceReady(); // desktop
+      }
     });
 
+    function determineGeo() {
+      if (initialLocation == null) {
+        navigator.geolocation.getCurrentPosition(onSuccess, onError, {timeout: 6000, enableHighAccuracy: false, maximumAge: 60000});
+      }
+    }
+
+    // onSuccess Geolocation
+    function onSuccess(position) {
+      initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+      map.setCenter(initialLocation);
+      showClientLocation();
+    }
+
+    function showClientLocation() {
+      if (clientLocation == null) {
+        clientLocation = new google.maps.Marker({
+          map: map,
+          title: 'Hier ben jij ongeveer',
+          icon: 'images/mylocation-x1.png'
+        });
+      }
+      clientLocation.setPosition(initialLocation);
+    }
+
+    // onError Callback receives a PositionError object
+    function onError(error) {
+      showAlert("Geolocation ging de mist in. " + error);
+    }
+
     function onDeviceReady() {
-      // hide the splashscreen when the device is ready
-      navigator.splashscreen.hide();
+
+      // start loading the map after a little delay to give the device the time to load the header (otherwise the screen is blank until the map is loaded)
+      setTimeout(function () {
+
+        // make sure the google map is exactly the height of the page minus the header
+        document.getElementById('map_canvas').style.height = (document.documentElement.clientHeight - 40) + 'px';
+
+        // create a custom style to suppress the POI's (which contain external links which we don't want)
+        var noPoiStyle = [
+          {
+            featureType: "poi",
+            elementType: "labels"
+          }
+        ];
+        map = new google.maps.Map(document.getElementById("map_canvas"),
+            {
+              mapTypeControlOptions: {
+                mapTypeIds: ['suppressPOIs', google.maps.MapTypeId.ROADMAP]
+              },
+              mapTypeId: 'suppressPOIs',
+              disableDefaultUI: true,
+              zoomControl: true,
+              zoomControlOptions: {
+                position: google.maps.ControlPosition.LEFT_BOTTOM
+              },
+              streetViewControl: true,
+              streetViewControlOptions: {
+                position: (isIOS() ? google.maps.ControlPosition.LEFT_BOTTOM : google.maps.ControlPosition.RIGHT_BOTTOM)
+              },
+              enableHighAccuracy: false // no GPS access required
+            });
+        map.mapTypes.set('suppressPOIs', new google.maps.StyledMapType(noPoiStyle, {name: 'No POIs please'}));
+
+        // Load the KML file (cached by Google)
+        var ctaLayer = new google.maps.KmlLayer(
+            'http://www.triodos.nl/projects.kml?hostPrefix=nl&country=nl&lang=nl',
+            {
+              suppressInfoWindows: true, // we want our own
+              map: map
+            });
+
+        google.maps.event.addListener(ctaLayer, 'click', function (kmlEvent) {
+          showInfoWindowWithKMLContent(kmlEvent.featureData.description, kmlEvent.latLng);
+        });
+
+        // after the KLM file is loaded, determine geolocation and set zoomlevel of the user
+        google.maps.event.addListenerOnce(ctaLayer, "defaultviewport_changed", function () {
+          google.maps.event.addListenerOnce(map, "bounds_changed", function () {
+            determineGeo();
+            map.setZoom(12); // lower number = wider view
+          });
+        });
+      }, 500);
+    }
+
+    function showInfoWindowWithKMLContent(text, latlng) {
+      // replace all (relative) links (/g for global), so the links open correctly
+      text = text.replace(/\"\?projectId=/g, 'http://www.triodos.nl/nl/over-triodos-bank/mijngeldgaatgoed/resultaten/?projectId=');
+      // add a class to the first two divs, so we can style the meta info
+      text = text.replace(/<div>/, '<div class="metaInfo">');
+      text = text.replace(/<div>/, '<div class="metaInfo">');
+      var content = "";
+      //content += '<span class="camera"><img src="images/camera.png" width="32px" height="32px" onclick="cameraIconClicked(document.getElementById('pasfoto'))"/></span>';
+      content += "<div class=\"triodosInfoWindow\">" + text + "</div>";
+//      content += '<div class="camera"><img src="images/camera.png" width="32px" height="32px" onclick="alert($(\'.triodosInfoWindow img\'))"/></div>';
+      content += '<div class="camera"><a href="#" onclick="cameraIconClicked(extractProjectId(text), $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
+
+      if (infoPopup != null) {
+        infoPopup.close();
+      }
+      infoPopup = new google.maps.InfoWindow({
+        content: content,
+        maxWidth: 230,
+        position: latlng,
+        pixelOffset: new google.maps.Size(0, 14),
+        map: map
+      });
+    }
+
+    function extractProjectId(text) {
+      // 'text' contains stuff like this: <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><img src="http://projects.triodos.com/projects/nl/philosophy_of_life/3033_pola_van_der_donck_stichting/03033_L1040053.jpg" height="133" width="199"></a><a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><strong>Pola van der Donck Stichting</strong></a><div>Levensbeschouwing</div><div>Kampen, Nederland</div><div>In 1999 werd de Pola van der Donck Stichting opgericht. Deze stichting... <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank">Meer&#187;</a></div>
+      var startIndexString = "?projectId=";
+      var startIndex = text.indexOf(startIndexString);
+
+      var endIndexString = "&amp;";
+      var endIndex = text.indexOf(endIndexString);
+
+      return text.substring(startIndex + startIndexString.length, endIndex);
+    }
+
+    function popupIFrameLoaded() {
+      setTimeout(function () {
+        try {
+          var contentHeight = document.getElementById('dynFrame').contentWindow.document.body.offsetHeight + 10 + 'px';
+          document.getElementById('dynFrame').style.height = contentHeight;
+          document.getElementById('dragger').style.height = contentHeight;
+        } catch (ignore) { // probably a permission denied warning because we try to access contents of a remote iframe
+        }
+      }, 2500);
     }
   </script>
-
-  <!-- Page: Home page -->
-  <div id="homePage" data-role="page">
-    <script language="JavaScript">
-      function onConfirmLogout(buttonIndex) {
-        if (buttonIndex == 1) { // index starts at 1
-          logout();
-        } else if (buttonIndex == 2) {
-          // cancelled
-        }
-      }
-
-      $('#homePage')
-          .on('pagebeforecreate', function(e, data) {
-            if (!isRegisteredTfgPartner()) {
-              // If not yet registered, redirect to the unknown page, where a button to register appears
-              $.mobile.changePage($("#unknownPage"), {transition:"none"});
-            } else {
-              if (isKeepLoggedIn()) {
-                autologin(); //Try autologin if isKeepLoggedIn is set...
-              }
-              if (!isLoggedIn()) {
-                $.mobile.changePage($("#loginPage"), {transition:"none"});
-              }
-            }
-          })
-
-          .on('pagebeforeshow', function(e, data) {
-            // pagebeforecreate's changePage methods don't prevent pagebeforeshow from being executed
-            if (!isRegisteredTfgPartner() || !isLoggedIn()) {
-              return;
-            }
-
-            $('#indexHeader').find('#saveButton').hide();
-
-            $('#logoutLink').click(function() {
-              if (isIOS() || isAndroid()) {
-                navigator.notification.confirm(
-                    'Zeker weten?', // message
-                    onConfirmLogout, // callback to invoke with index of button pressed
-                    'Uitloggen', // title
-                    'Jazeker, Nee' // buttonLabels
-                );
-              } else {
-                logout();
-              }
-            });
-
-            $('#requestBlock').click(function() {
-              $.mobile.changePage($("#requestPage"));
-            });
-
-            $('#newsBlock').click(function() {
-              $.mobile.changePage($("#newsPage"));
-            });
-
-            $('#peopleBlock').click(function() {
-              $.mobile.changePage($("#peoplePage"));
-            });
-
-            $('#settingsBlock').click(function() {
-              $.mobile.changePage($("#settingsPage"));
-            });
-
-            // prevent paste in statusMessage field
-            $('#statusMessage').bind("paste", function(e) {
-              e.preventDefault();
-            });
-
-            initStatusEditFields();
-
-            // Auto login enabled, just show the page
-            if (getUserId() != null && getUser() == null) {
-              loadUser();
-            }
-            var user = getUser();
-            if (user != null) {
-              $("#statusName").html(user.name);
-              if (user.mobileUser.statusMessage != null) {
-                $("#statusDate").html(user.mobileUser.statusDate);
-                $("#statusMessage").html(user.mobileUser.statusMessage);
-              }
-              $("#pasfoto").attr("src", getPhoto(user));
-            }
-
-          })
-
-          .on('pageshow', function(e, data) {
-            // show nr of new request items (TODO: showing all items as new for now)
-            retrieveRequestsFromServer(
-                function(output) {
-                  addRequestsToCache(output);
-                  showCountBubble(output, "#requestCount")
-                }
-            );
-
-            // show nr of new news items (TODO: showing all items as new for now)
-            retrieveNewsFromServer(
-                function(output) {
-                  addNewsToCache(output);
-                  showCountBubble(output, "#newsCount")
-                }
-            );
-          })
-
-          .on('pagebeforehide', function(e, data) {
-            // Unbinding events. Must be done here, because we need to unbind, even when they have not been clicked.
-            $('#logoutLink').unbind("click");
-            $('#requestBlock').unbind("click");
-            $('#newsBlock').unbind("click");
-            $('#peopleBlock').unbind("click");
-            $('#settingsBlock').unbind("click");
-            $('#statusMessage').unbind("paste");
-
-          });
-
-      function showCountBubble(items, countField) {
-        if (items != null && items.length > 0) {
-          $(countField)
-              .html(items.length)
-              .css({'visibility':'visible'});
-        }
-      }
-
-      var maxLengthStatusText = 80;
-
-      function updateStatusCharCounter(e) {
-        // ignore enters
-        if (e != null && e.which == 13) {
-          e.preventDefault();
-          return;
-        }
-        var field = $("#statusMessage");
-        var length = field.text().length;
-        var charsLeft = maxLengthStatusText-length;
-        if (e != null && e.which == 8) {
-          if (length > 0) {
-            charsLeft++;
-          }
-        } else {
-          charsLeft--;
-        }
-        if (charsLeft < 0) {
-          if (e.which != 8) { // not the 'backspace'
-            e.preventDefault();
-            return;
-          }
-        } else if (charsLeft < 7) {
-          $("#statusCharCounter").css({'color':'red'});
-        } else if (charsLeft < 20) {
-          $("#statusCharCounter").css({'color':'orange'});
-        } else {
-          $("#statusCharCounter").css({'color':'green'});
-        }
-        $("#statusCharCounter").html(charsLeft);
-      }
-
-      function makeStatusEditable() {
-        $('#indexHeader #statusDate').hide();
-        $('#indexHeader #statusMessage')
-            .attr('contenteditable', true)
-            .css({'width': '100%'})
-            .focus();
-        $('#indexHeader #editButton').hide();
-        $('#indexHeader #saveButton').show();
-        $('#indexHeader .camera').show();
-        $('#indexHeader #statusCharCounter').show();
-        updateStatusCharCounter();
-      }
-
-      function initStatusEditFields() {
-        var header = $("#indexHeader");
-        var statusMessage = $(header).find("#statusMessage");
-
-        $(header).find("#saveButton").hide();
-        $(header).find(".camera").hide();
-        $(header).find("#statusCharCounter").hide();
-        $(header).find("#editButton").show();
-        $(statusMessage)
-            .attr('contenteditable', false)
-            .css({'width': 'auto'});
-      }
-
-      function saveStatus() {
-        // save the status and refresh the view
-        var header = $("#indexHeader");
-        var statusMessage = $(header).find("#statusMessage");
-        var statusMessageCleaner = $(header).find("#statusMessageCleaner");
-        // strip any html tags by putting the text() version back in the cleaner div
-        $(statusMessageCleaner).html(statusMessage.text());
-        // now read it again
-        var statusText = statusMessageCleaner.text();
-        if (statusText.length > maxLengthStatusText) {
-          showAlert("Gebruik niet meer dan " + maxLengthStatusText + " tekens.");
-          $(statusMessage).focus();
-          return;
-        }
-
-        $.mobile.loading('show');
-        // Set a delay so the spinner appears
-        setTimeout(function() {
-          doPost(
-            getServiceURL("/user/savestatus"),
-            {
-              'personid' : getUser().personID,
-              'status' : statusText
-            },
-            true,
-            function(data) {
-              if (data.success) {
-                var user = getUser();
-                user.mobileUser = data.output;
-                storeUser(user);
-                initStatusEditFields();
-                $(statusMessage).html(user.mobileUser.statusMessage);
-                $(header).find("#statusDate")
-                    .html(user.mobileUser.statusDate)
-                    .show();
-                // make sure the personlist is retrieved next time, so the status of this user is updated in that list
-                forcePersonListRefresh();
-                $.mobile.loading('hide');
-              } else {
-                showAlert('Status opslaan mislukt.');
-                $.mobile.loading('hide');
-              }
-            }
-          );
-        }, 200);
-      }
-    </script>
-    <div data-role="header" data-tap-toggle="false">
-      <a id="logoutLink" data-icon="false" data-direction="reverse" href="#" class="button_back">Uitloggen</a>
-      <h1>Home</h1>
-    </div>
-    <div data-role="content">
-      <ul id="header" data-role="listview" data-inset="true">
-
-        <li id="indexHeader" data-icon="false">
-          <img id="pasfoto" src="img/pasfoto/empty.gif" height="80px"/>
-          <span class="camera"><img src="img/camera.png" width="32px" height="32px" onclick="cameraIconClicked(document.getElementById('pasfoto'))"/></span>
-
-          <h2 id="statusName"></h2><!-- Name of the current user -->
-          <div id="statusDate" class="statusDate post-date"></div> <!-- User's status -->
-          <div id="statusMessage" class="statusMessage" onkeydown="updateStatusCharCounter(event)"></div> <!-- User's status -->
-          <div id="statusMessageCleaner" style="display: none"></div>
-
-          <div id="statusCharCounter"></div>
-          <div id="editButton" onclick="makeStatusEditable()"><img src="img/edit.png" width="16px" height="16px"/></div>
-          <div id="saveButton" onclick="saveStatus()"><img src="img/save.gif" width="16px" height="16px"/></div>
-        </li>
-      </ul>
-
-      <div class="ui-grid-a">
-        <div id="peopleBlock"   class="ui-block-a home_block home_block_top_left">maten</div>
-        <div id="requestBlock"  class="ui-block-b home_block home_block_top_right has-count"><div class="block-inner-text">aanvragen</div><div class="ui-li-count" id="requestCount"></div></div>
-        <div id="settingsBlock" class="ui-block-a home_block home_block_bottom_left">instellingen</div>
-        <div id="newsBlock"     class="ui-block-b home_block home_block_bottom_right has-count"><div class="block-inner-text">nieuws</div><div class="ui-li-count ui-li-count-blue" id="newsCount"></div></div>
-      </div>
-    </div>
-  </div>
-  <!-- End page: Home page -->
-
-  <!-- Page: People page -->
-  <div id="peoplePage" data-role="page">
-    <script language="JavaScript">
-
-      function showPersons(persons) {
-        var htmlList = "";
-        var departmentID;
-//        var addDepartmentHeaders = new MatenFilter().settings.groupByDept && new MatenFilter().settings.sortBy == "NAME";
-        var groupByDepartment = new MatenFilter().settings.groupByDept;
-
-        $(persons).each(function (personIdx, person) {
-          if (groupByDepartment && departmentID != person.department.id) {
-            htmlList += '<li data-role="list-divider">' + person.department.name + '</li>';
-            departmentID = person.department.id;
-          }
-
-          status = null;
-          statusDate = null;
-          if (person.mobileUser != null) {
-            var status = person.mobileUser.statusMessage;
-            var statusDate = person.mobileUser.statusDate;
-          }
-
-          var availabilityStyle = "available";
-          if (!person.available) { // note: the backend takes care of also checking a possilbe mobileuser record's availability settings
-            availabilityStyle = "unavailable";
-          }
-          htmlList += '' +
-              '<li data-icon="false">' +
-              '  <a href="#personPage?id='+person.personID+'">' +
-              '    <img src="' + getPhoto(person) + '" width="100%" height="100%"/>' +
-              '    <h3 class="' + availabilityStyle + '">'+person.name+'</h3>';
-//              '    <p>'+person.place+'</p>' +
-          if (person.mobileUser != null && person.mobileUser.statusDate != null) {
-                htmlList += '' +
-                '    <div class="statusDate post-date">' + person.mobileUser.statusDate + '</div>' +
-                '    <div class="statusMessage">' + person.mobileUser.statusMessage + '</div>';
-          }
-          htmlList += '' +
-              '  </a>' +
-              '</li>';
-        });
-        $("#peopleList")
-            .html(htmlList)
-            .listview("refresh");
-      }
-
-      $('#peoplePage')
-          .bind('swiperight', function() {
-            $.mobile.changePage($("#homePage"), {reverse:true});
-          })
-          .on('pagebeforeshow', function(e, data) {
-
-            // strategy for quickly rendering an up-to-date peoplelist:
-            // 1) if already cached (not the first visit ever): show content from cache
-            var cachedPersons = loadPersons();
-            if (cachedPersons != null) {
-              cachedPersons = JSON.parse(cachedPersons);
-              showPersons(cachedPersons);
-            }
-
-            // 2) if not already retrieved the list in this session: retrieve from server and flag as retrieved (TODO which may be forced by pull-to-refresh)
-            if (!isPeopleListLoadedThisSession()) {
-              searchMaten(true, cachedPersons == null);
-              setPeopleListLoadedThisSession();
-            }
-          });
-    </script>
-    <div data-role="header" data-theme="c" data-tap-toggle="false">
-      <a data-icon="arrow-l" data-direction="reverse" href="#homePage" class="button_back">Home</a>
-      <h1>Maten</h1>
-      <a data-icon="search" data-iconpos="notext" href="#matenFilterPanel" data-rel="popup" data-transition="slide" data-position-to="window" class="ui-btn-right"></a>
-    </div>
-
-    <div data-role="panel" id="matenFilterPanel" data-position-fixed="false" data-position="right" data-display="reveal">
-      <script type="text/javascript">
-        $('#matenFilterPanel')
-            .on('panelbeforeopen', function(e, data) {
-              // fetch the list of departments (TODO cache, as this will hardly ever change)
-              if ($('#showOnlyThisDeptID option').length == 0) {
-                doGet(
-                    getServiceURL("/department/list"),
-                    false,
-                    function(data) {
-                      if (data.success) {
-                        var content = '<option value="-1">toon alle maatschappen</option>';
-                        $(data.output).each(function (deptIdx, dept) {
-                          content += '<option value="'+dept.id+'">'+dept.name+'</option>';
-                        });
-                        $('#showOnlyThisDeptID').html(content);
-                      }
-                    }
-                );
-              }
-
-              // set the html widgets to the setting of the user preferences
-              var matenFilter = new MatenFilter();
-              $("#sortPersonsBy").val(matenFilter.settings.sortBy).selectmenu('refresh');
-              $("#showOnlyThisDeptID").val(matenFilter.settings.showOnlyThisDeptID).selectmenu('refresh');
-              $('#groupPerMaatschap').prop('checked', matenFilter.settings.groupByDept).checkboxradio('refresh');
-              $('#showOnlyAvailablePersons').prop('checked', matenFilter.settings.showOnlyAvailable).checkboxradio('refresh');
-              $('#personSearchText').val(matenFilter.settings.searchText);
-            });
-
-        function closeMatenFilterPanel() {
-          $('#matenFilterPanel').panel('close');
-        }
-
-        function clearMatenFilter() {
-          new MatenFilter().forgetSettings();
-          searchMatenSync();
-        }
-
-        function searchMaten(async, immediatelyShowResult) {
-          doPost(
-            getServiceURL("/person/search"),
-            new MatenFilter().settings,
-            async,
-            function(data) {
-              if (data.success) {
-                // Save the result and show it
-                savePersons(JSON.stringify(data.output));
-                if (immediatelyShowResult) {
-                  showPersons(data.output);
-                }
-                // close the panel if it's open
-                closeMatenFilterPanel();
-              } else {
-                // search failed
-                showAlert("Fout tijdens het zoeken, geef ajb de zoekopdracht door aan de beheerder.");
-              }
-            }
-          );
-        }
-
-        function searchMatenSync() {
-          $.mobile.loading('show');
-          // add a delay, so the spinner can appear
-          setTimeout(function() {
-            searchMaten(false, true);
-            $.mobile.loading('hide');
-          }, 200);
-        }
-
-        function applyMatenFilter() {
-          var matenFilter = new MatenFilter();
-          matenFilter.settings.sortBy = $("#sortPersonsBy").val();
-          matenFilter.settings.groupByDept = $("#groupPerMaatschap").is(":checked");
-          matenFilter.settings.showOnlyThisDeptID = $("#showOnlyThisDeptID").val();
-          matenFilter.settings.searchText = $("#personSearchText").val();
-          matenFilter.settings.showOnlyAvailable = $("#showOnlyAvailablePersons").is(":checked");
-          matenFilter.rememberSettings();
-          searchMatenSync();
-        }
-      </script>
-
-      <div id="search">
-        <input type="search" name="personSearchText" id="personSearchText" value="" data-mini="true" placeholder="zoek naar.."/>
-      </div>
-
-      <select data-iconpos="left" data-theme="a" name="sortPersonsBy" id="sortPersonsBy" data-mini="true">
-        <option value="NAME">sorteer op naam</option>
-        <option value="STATUSUPDATE">sorteer op status update</option>
-        <option value="AVAILABILITY">sorteer op beschikbaarheid</option>
-      </select>
-
-      <select data-iconpos="left" data-theme="a" name="showOnlyThisDeptID" id="showOnlyThisDeptID" data-mini="true"></select>
-
-      <input data-theme="b" type="checkbox" class="custom" name="showOnlyAvailablePersons" id="showOnlyAvailablePersons" data-mini="true"/>
-      <label for="showOnlyAvailablePersons">toon alleen beschikbare maten</label>
-      <br/>
-
-      <input data-theme="b" type="checkbox" name="groupPerMaatschap" id="groupPerMaatschap" data-mini="true" />
-      <label for="groupPerMaatschap">groepeer per maatschap</label>
-      <br/>
-      <br/>
-      <br/>
-
-      <a style="float: left" data-role="button" data-iconpos="left" data-icon="delete" data-inline="true" data-mini="true" onclick="clearMatenFilter()">Toon alles</a>
-      <a style="float: right" data-role="button" data-iconpos="right" data-icon="search" data-inline="true" data-mini="true" data-theme="b" onclick="applyMatenFilter()">Zoek</a>
-    </div>
-
-    <div data-role="content" data-iscroll='{"useTransition":true, "bounce":false, "momentum":true}'>
-      <ul id="peopleList" data-role="listview" data-inset="false" data-corners="false" data-divider-theme="a"></ul>
-    </div>
-  </div>
-  <!-- End page: People page -->
-
-  <!-- Page: person -->
-  <div id="personPage" data-role="page">
-    <script language="JavaScript">
-      $('#personPage')
-          .bind('swiperight', function() {
-            $.mobile.changePage($("#peoplePage"), {reverse:true});
-          })
-          .on('pagebeforeshow', function(e, data) {
-            var personid = $.mobile.pageData.id;
-            var cachedPersons = loadPersons();
-            cachedPersons = JSON.parse(cachedPersons);
-            $(cachedPersons).each(function(index, person) { // note: index is 0-based
-              if (person.personID == personid) {
-                $("#person-name").html(person.name);
-                $("#person-maatschap").html(person.department.name);
-                $("#person-place").html(person.place);
-
-                $("#person-tel1")
-                    .html(person.tel1nr)
-                    .attr("href", "tel:" + person.tel1nr);
-//                if (person.tel1name == "") {
-//                  $("#person-tel1-omschrijving").html("");
-//                } else {
-//                  $("#person-tel1-omschrijving").html(" ("+person.tel1name+")");
-//                }
-//                $("#person-tel1-popup")
-//                    .html("Bel " + person.tel1nr)
-//                    .attr("href", "tel:" + person.tel1nr);
-
-                $("#person-tel2")
-                    .html(person.tel2nr)
-                    .attr("href", "tel:" + person.tel2nr);
-
-//                if (person.tel2name == "") {
-//                  $("#person-tel2-omschrijving").html("");
-//                } else {
-//                  $("#person-tel2-omschrijving").html(" ("+person.tel2name+")");
-//                }
-
-    //            $("#person-tel2-popup").html("Bel " + person.tel2nr);
-    //            $("#person-tel2-popup").attr("href", "tel:"+person.tel2nr);
-
-                $("#person-email")
-                    .html(person.email)
-                    .attr("href", "mailto:" + person.email);
-
-//                $("#person-email-popup")
-//                    .html("Stuur een email")
-//                    .attr("href", "mailto:" + person.email);
-
-                $("#person-photo")
-                    .attr("src", getPhoto(person));
-
-                if (person.mobileUser != null && person.mobileUser.statusDate != null) {
-                  $("#person-status")
-                      .html(person.mobileUser.statusMessage)
-                      .show();
-                } else {
-                  $("#person-status").hide();
-                }
-
-                // TODO honor filters when binding next/prev buttons
-                // if this was not the first person, bind a click function to navigate to the previous person
-                if (index > 0) {
-                  $('#previousPerson')
-                      .removeClass('transparent')
-                      .bind('click', function() {
-                        $.mobile.changePage("#personPage?id=" + cachedPersons[index - 1].personID, {transition: 'none', allowSamePageTransition: true});
-                      });
-                } else {
-                  // visually indicate the button is not clickable
-                  $('#previousPerson').addClass('transparent');
-                }
-
-                // if this was not the last person, bind a click function to navigate to the next person
-                if (index < cachedPersons.length - 1) {
-                  $('#nextPerson')
-                      .removeClass('transparent')
-                      .bind('click', function() {
-                        $.mobile.changePage("#personPage?id=" + cachedPersons[index + 1].personID, {transition: 'none', allowSamePageTransition: true});
-                      });
-                } else {
-                  // visually indicate the button is not clickable
-                  $('#nextPerson').addClass('transparent');
-                }
-
-                return false; // breaks the loop
-              }
-            });
-          })
-          .on('pagebeforehide', function(e, data) {
-            $('#previousPerson').unbind('click');
-            $('#nextPerson').unbind('click');
-          });
-
-    </script>
-    <div data-role="header" data-theme="c" data-tap-toggle="false" data-position="fixed">
-      <a data-icon="arrow-l" data-direction="reverse" href="#peoplePage" class="button_back">Maten</a>
-      <h1>Maat info</h1>
-      <div data-role="controlgroup" data-type="horizontal" class="ui-btn-right">
-        <a id="previousPerson" data-icon="arrow-u" data-role="button" href="#" data-iconpos="notext">up</a>
-        <a id="nextPerson" data-icon="arrow-d" data-role="button" href="#" data-iconpos="notext">down</a>
-      </div>
-    </div>
-
-    <!--div data-role="panel" id="contactPanel" data-position-fixed="false" data-position="left" data-display="reveal">
-      <a id="person-tel1-popup" data-role="button" data-theme="a" data-icon="forward" data-mini="true" href="" data-direction="reverse"></a>
-      <a id="person-email-popup" data-role="button" data-theme="a" data-icon="forward" data-mini="true" href="" data-direction="reverse"></a>
-      <a data-role="button" data-theme="c" data-icon="delete" data-mini="true" onclick="$('#contactPanel').panel('close')" id="menu_option_cancel">Annuleren</a>
-    </div-->
-
-    <div data-role="content">
-      <fieldset class="person-image-and-name">
-        <div class="person-image">
-          <img id="person-photo" src="img/pasfoto/empty.gif"/>
-        </div>
-        <div class="person-header">
-          <h2><div id="person-name"></div><!--div class="person-share"><a href="#contactPanel" data-rel="popup" data-transition="slideup" data-position-to="window"><img src="img/share.png" width="22px" height="18px" border="0"/></a></div--></h2>
-          <br/><p><span id="person-maatschap"></span>, <span id="person-place"></span></p>
-          <p class="person-currentjob">@Rabobank t/m feb 2013</p>
-        </div>
-      </fieldset>
-
-      <fieldset id="person-status" class="person-status"></fieldset>
-
-      <fieldset class="person-contact">
-        <p><a id="person-tel1" href=""></a> <span id="person-tel1-omschrijving"></span></p>
-        <p><a id="person-tel2" href=""></a> <span id="person-tel2-omschrijving"></span></p>
-        <p><a id="person-email" href=""></a></p>
-        <!-- TODO personal profile -->
-        <p><a onclick="openWindow('http://www.the-future-group.com/gerben.vis')" href="#">TFG profiel</a></p>
-        <!--De linkedin app openen mbv een link kan nog niet, dus tonen webversie in browser: http://developer.linkedin.com/forum/link-open-linkedin-profile-browser-ios-linkedin-app-->
-        <!-- TODO personal linkedin -->
-        <p><a onclick="openWindow('http://nl.linkedin.com/pub/eddy-verbruggen/1/6b8/739')" href="#">LinkedIn</a></p>
-      </fieldset>
-
-      <div data-role="collapsible-set" data-inset="false">
-        <div data-role="collapsible" data-collapsed="false" data-theme="a" data-content-theme="c" data-inset="false" data-iconpos="right">
-          <h2>Kennis en vaardigheden</h2>
-          <ul id="skillList" data-role="listview" data-inset="false" data-theme="c" data-divider-theme="d">
-            <li>
-              <img src="img/skill/java.jpg" width="46px" height="46px"/>
-              <h3>Java</h3>
-              <p>bla bla bla</p>
-            </li>
-            <li>
-              <img src="img/skill/wordpress.png" width="46px" height="46px"/>
-              <h3>Wordpress</h3>
-              <p>bla bla bla bla bla</p>
-            </li>
-          </ul>
-        </div>
-        <div data-role="collapsible" data-theme="a" data-content-theme="c" data-inset="false" data-iconpos="right">
-          <h2>Klanten</h2>
-          <ul id="customerList" data-role="listview" data-inset="false" data-theme="c" data-divider-theme="d" data-filter="true" data-filter-theme="c" data-filter-placeholder="Zoek..">
-            <li data-role="list-divider">
-              2013
-            </li>
-            <li>
-              <h3>Klant a</h3>
-              <p>
-                Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier.
-                Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier.
-                Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier.
-              </p>
-            </li>
-            <li data-role="list-divider">
-              2012
-            </li>
-            <li>
-              <h3>Klant b</h3>
-              <p>
-                Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier.
-                Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier.
-                Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier.
-              </p>
-            </li>
-            <li>
-              <h3>Klant c</h3>
-              <p>
-                Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier.
-                Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier.
-                Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier. Beschrijving hier.
-              </p>
-            </li>
-          </ul>
-        </div>
-
-      </div>
-    </div>
-  </div>
-  <!-- End page: person -->
-
-  <!-- Page: Unknown page (not yet registered) -->
-  <div id="unknownPage" data-role="page">
-    <script language="JavaScript">
-      $('#unknownPage')
-          .on('pagebeforeshow', function (e, data) {
-            $('#loginPageLink').click(function() {
-              $.mobile.changePage($("#loginPage"));
-            });
-
-            $('#tfgWebsiteLink').click(function() {
-              window.open("http://www.the-future-group.com/");
-            })
-          })
-          .on('pagebeforehide', function (e, data) {
-            $('#loginPageLink').unbind("click");
-            $('#tfgWebsiteLink').unbind("click");
-          });
-    </script>
-    <div data-role="header" data-tap-toggle="false">
-      <h1>Welkom</h1>
-    </div>
-    <div data-role="content">
-      <div class="ui-grid-solo">
-        <div id="loginPageLink" class="ui-grid-solo unknown_block unknown_block_first" href="#loginPage">
-          Ik ben een maat bij The Future Group en wil me graag eenmalig registreren met mijn MyTFG gegevens.
-        </div>
-        <br/>
-        <div id="tfgWebsiteLink" class="ui-grid-solo unknown_block unknown_block_second">
-          <!--a href="http://www.the-future-group.com/" rel="external"-->
-          Ik ben (nog) geen maat bij The Future Group. Bezoekers kunnen een kijkje nemen op onze mobiele website (u verlaat de app).
-        </div>
-      </div>
-    </div>
-  </div>
-  <!-- End page: Unknown page -->
-
-  <!-- Page: Login page -->
-  <div id="loginPage" data-role="page">
-    <script language="JavaScript">
-      $('#loginPage').on('pagebeforeshow', function (e, data) {
-        // prevent paste
-        $('#loginPage').find('input')
-            .bind("paste", function(e) {
-              e.preventDefault();
-            })
-            .bind("keyup", function(e) {
-              var loginName = $('#loginName').val();
-              var password = $('#password').val();
-              $("#loginButton").button(loginName.trim().length > 0 && password.trim().length > 0 ? "enable" : "disable");
-            });
-
-        var storedLoginName = getLoginName();
-        if (storedLoginName != null) {
-          $("#loginName").val(storedLoginName.toLowerCase());
-        }
-        if (isKeepLoggedIn()) {
-          $('#keepLoggedIn').prop('checked', true).checkboxradio('refresh');
-        }
-        $('#loginButton').click(function() {
-          $.mobile.loading('show');
-
-          var loginName = $('#loginName').val();
-          var password = $('#password').val();
-          var keepLoggedIn = $("#keepLoggedIn").is(":checked");
-
-          // Set a delay so the spinner appears
-          setTimeout(function() {
-            // Login the user
-            doPost(
-              getServiceURL("/user/login"),
-              {
-                'username' : loginName,
-                'password' : password
-              },
-              false,
-              function(data) {
-                if (data.success) {
-                  // Reset fields
-                  $("#loginName").val(null);
-                  $("#password").val(null);
-                  setRegisteredForApp();
-                  setKeepLoggedIn(keepLoggedIn);
-                  setLoginName(data.output.username);
-                  setUserId(data.output.person.personID);
-                  setTokenInSession(data.output.token);
-                  if (keepLoggedIn == true) {
-                    setToken(data.output.token); // Setting the token of the server in the password
-                  } else {
-                    setToken(null); // Clean the local storage value
-                  }
-
-                  loadUser();
-
-                  $("#errors").html("");
-                  $('#loginButton').unbind("click");
-                  $('#loginPage').find('input')
-                      .unbind("paste")
-                      .unbind("keyup");
-
-                  $.mobile.changePage($("#homePage"));
-
-                } else {
-                  // Login not successful.
-                  $("#errors").html("<p>Inloggen mislukt, probeer het nogmaals.</p>");
-                  $.mobile.loading('hide');
-                }
-              }
-            );
-          }, 200);
-        })
-      });
-    </script>
-    <div data-role="header" data-tap-toggle="false">
-      <a href="#unknownPage" data-icon="arrow-l" data-direction="reverse" class="button_back">Start</a>
-      <h1>Inloggen</h1>
-    </div>
-    <div data-role="content">
-      <div id="errors"></div>
-      <h2>MyTFG Account</h2>
-      <form id="loginForm" style="text-align: right">
-        <input type="text" name="loginName" id="loginName" value="" placeholder="MyTFG gebruikersnaam" autocapitalize="off" autocomplete="off" autocorrect="off"/>
-        <input type="password" name="password" id="password" value="" placeholder="MyTFG wachtwoord" autocapitalize="off" autocomplete="off" autocorrect="off"/>
-        <br/>
-        <label for="keepLoggedIn">
-          ik wil ingelogd blijven
-          <input type="checkbox" id="keepLoggedIn" data-mini="true"/>
-        </label>
-        <br/>
-        <input type="button" data-role="button" id="loginButton" data-icon="false" data-theme="a" value="inloggen" disabled/>
-      </form>
-    </div>
-  </div>
-  <!-- End page: Login page -->
-
-  <!-- Page: Request page -->
-  <div id="requestPage" data-role="page">
-    <script language="JavaScript">
-      $('#requestPage')
-          .bind('swiperight', function() {
-            $.mobile.changePage($("#homePage"), {reverse:true});
-          })
-          .bind('swipeleft', function() {
-            $.mobile.changePage($("#createRequestPage"));
-          })
-          .on('pagebeforeshow', function(e, data) {
-            showRequests();
-          })
-          .on("pageinit", function(event) {
-            $(".iscroll-wrapper").bind( {
-              iscroll_onpulldown : onPullDownRequests
-            } );
-          });
-
-      function onPullDownRequests(event, data) {
-        retrieveRequestsFromServer(showRequests);
-      }
-
-      function writeRequestListItem(data) {
-        if (data.person.personID == getUserId()) {
-          return '' +
-              '<li data-icon="false">' +
-              '  <a href="#requestDetailPage?requestID=' + data.requestID + '">' +
-              '    <img src="' + getPhoto(data.person) + '" height="80px" width="80px"/>' +
-              '    <h3>' + cleanServerText(data.title) + '</h3>' +
-              '    <p><span class="post-date">' + data.date + '</span> <span class="post-person">' + data.person.name + '</span></p>' +
-              '    <p class="post-content">' + cleanServerText(data.content) +'</p>' +
-              '  </a>' +
-              '</li>';
-        } else {
-          return '' +
-              '<li data-icon="false">' +
-              '    <img src="' + getPhoto(data.person) + '" height="80px"/>' +
-              '    <h3>' + cleanServerText(data.title) + '</h3>' +
-              '    <p><span class="post-date">' + data.date + '</span> <span class="post-person">' + data.person.name + '</span></p>' +
-              '    <p class="post-content">' + cleanServerText(data.content) +'</p>' +
-              '</li>';
-        }
-      }
-
-      function showRequests() {
-        var content = "";
-        $(loadRequests()).each(function (requestIdx, data) {
-          content += writeRequestListItem(data);
-        });
-        $('.requestListUl')
-            .html(content)
-            .listview('refresh');
-      }
-    </script>
-    <div data-role="header" data-theme="c" data-tap-toggle="false" data-position="fixed">
-      <a href="#homePage" data-icon="arrow-l" data-direction="reverse" class="button_back">Home</a>
-      <h1>Aanvragen</h1>
-      <a href="#requestDetailPage?requestID=0" data-position="create" data-icon="plus" data-iconpos="notext"></a>
-    </div>
-    <div data-role="content" data-iscroll="">
-      <div class="iscroll-pulldown">
-        <span class="iscroll-pull-icon"></span>
-        <span class="iscroll-pull-label"
-              data-iscroll-loading-text="De aanvragen worden ververst"
-              data-iscroll-pulled-text="Laat los om de aanvragen te verversen">Ververs de aanvragen</span>
-      </div>
-      <div id="requestList">
-        <ul class="requestListUl" data-role="listview" data-inset="false" data-divider-theme="d"></ul>
-      </div>
-    </div>
-  </div>
-  <!-- End page: Request page -->
-
-  <!-- Page: Request detail page -->
-  <div id="requestDetailPage" data-role="page">
-    <script language="JavaScript">
-      function enableOrDisableSaveAndCancelButton() {
-        var title = $('#title').val();
-        var content = $('#content').val();
-        $("#saveRequestButton").button(title.trim().length > 0 && content.trim().length > 0 ? "enable" : "disable");
-        $("#cancelRequestButton").button(title.trim().length > 0 && content.trim().length > 0 ? "enable" : "disable");
-      }
-
-      $('#requestDetailPage')
-          .on('pagebeforeshow', function(e, data) {
-
-            $('#saveRequestButton').button('disable');
-            $('#cancelRequestButton').button('disable');
-            $('#deleteRequestButton').button('disable');
-
-            // Set the requestID from the url
-            var requestID = $.mobile.pageData.requestID;
-            $('#requestID').val(requestID);
-
-            if (requestID > 0) {
-              // Update mode
-              var request = findRequest(requestID);
-              $('#title').val(request.title);
-              $('#content').val(request.content);
-
-              $('#deleteRequestButton').button('enable');
-
-              $('#deleteRequestButton').click(function() {
-                doPost(
-                    getServiceURL("/request/delete"),
-                    {
-                      'requestID' : $('#requestID').val()
-                    },
-                    false,
-                    function(data) {
-                      if (data.success) {
-                        retrieveRequestsFromServer(showRequests);
-//                      showAlert('Debugging: success');
-                        // TODO: Feedback to user that request is created...
-                      } else {
-                        showAlert('Debugging: failure');
-                        // TODO: Feedback to user that request was not created...
-                      }
-                    }
-                );
-                $.mobile.changePage($("#requestPage"), {reverse:true});
-              });
-
-            } else {
-              $('#content').css('height', ''); //Reset the height of the textarea when entering a new request
-            }
-
-            // save button
-            $('#saveRequestButton').click(function() {
-              var requestMessageCleaner = $("#requestMessageCleaner");
-              // strip any html tags by putting the text() version back in the cleaner div
-              $(requestMessageCleaner).html($('#title').val());
-              // now read it again
-              var title = requestMessageCleaner.text();
-              // strip any html tags by putting the text() version back in the cleaner div
-              $(requestMessageCleaner).html($('#content').val());
-              // now read it again
-              var content = requestMessageCleaner.text();
-
-              doPost(
-                  getServiceURL("/request/save"),
-                  {
-                    'requestID' : $('#requestID').val(),
-                    'title' : title,
-                    'content' : content,
-                    'personID' : getUserId()
-                  },
-                  false,
-                  function(data) {
-                    if (data.success) {
-                      retrieveRequestsFromServer(showRequests);
-                      $.mobile.changePage($("#requestPage"), {reverse:true});
-//                      showAlert('Debugging: success');
-                      // TODO: Feedback to user that request is created...
-                    } else {
-                      showAlert('Something went wrong');
-                      // TODO: Feedback to user that request was not created...
-                    }
-                  }
-              );
-            });
-
-            $('#cancelRequestButton').click(function() {
-              $.mobile.changePage($("#requestPage"), {reverse:true});
-            });
-          })
-          .on('pagebeforehide', function(e, data) {
-            // clearing the input fields
-            $('#requestID').val('');
-            $('#title').val('');
-            $('#content').val('');
-
-            // Unbinding events. Must be done here, because we need to unbind, even when they have not been clicked.
-            $('#cancelRequestButton').unbind("click");
-            $('#saveRequestButton').unbind("click");
-            $('#deleteRequestButton').unbind("click");
-          });
-
-
-    </script>
-    <div data-role="header" data-theme="c" data-position="fixed">
-      <a href="#requestPage" data-icon="arrow-l" data-direction="reverse" class="button_back">Terug</a>
-      <h1>Aanvraag</h1>
-    </div>
-    <div data-role="content">
-      <!--label for="title">Titel:</label-->
-      <input type="hidden" name="requestID" id="requestID" value="" placeholder="Titel" />
-      <input onkeyup="enableOrDisableSaveAndCancelButton()" type="text" name="name" id="title" value="" placeholder="Titel" />
-      <!--label for="content">Inhoud:</label-->
-      <textarea onkeyup="enableOrDisableSaveAndCancelButton()" name="textarea" id="content" placeholder="Inhoud" maxlength="2000"></textarea>
-      <div id="requestMessageCleaner" style="display: none"></div>
-      <br/>
-      <button id="saveRequestButton" data-theme="b">Opslaan</button>
-      <button id="cancelRequestButton">Annuleer</button>
-      <button id="deleteRequestButton">Verwijderen</button>
-    </div>
-  </div>
-  <!-- End page: Request detail page -->
-
-  <!-- Page: News page -->
-  <div id="newsPage" data-role="page">
-    <script language="JavaScript">
-      $('#newsPage')
-          .bind('swiperight', function() {
-            $.mobile.changePage($("#homePage"), {reverse:true});
-          })
-          .on('pagebeforeshow', function(e, data) {
-            retrieveNewsFromServer(showNews);
-            $(".iscroll-wrapper").iscrollview("refresh");
-          })
-          .on("pageinit", function(event) {
-            $(".iscroll-wrapper").bind({
-              iscroll_onpulldown : onPullDownNews
-            } );
-          });
-
-      function onPullDownNews(event, data) {
-        retrieveNewsFromServer(showNews);
-      }
-
-      function getNewsIcon(type) {
-        if (type == "LINKEDIN") {
-          return "linkedin.gif";
-        } else if (type == "FACEBOOK") {
-          return "facebook.png";
-        } else if (type == "EVENT") {
-          return "event.png";
-        } else {
-          // news, also the default
-          return "news.png";
-        }
-      }
-
-      function writeNewsListItem(data) {
-        var content = '' +
-            '<li data-role="list-divider"><div>' + cleanServerText(data.title) + '<span class="icon"><img src="img/newsicons/' + getNewsIcon(data.type) + '" width="24px" height="24px"/></span><span class="date">'+ data.date + '</span></div></li>' +
-            '<li data-theme="d">' +
-            '  <p>' + cleanServerText(data.content) + '</p>';
-        if (data.imageUrl != null) {
-          content += '' +
-              // TODO max width via css, also for inline images in data.content
-              '<p><img src="'+data.imageUrl+'"/></p>';
-        }
-        content += '' +
-            '</li>';
-        return content;
-      }
-
-      function showNews() {
-        var content = "";
-        $(loadNews()).each(function (newsIdx, data) {
-          // remove and links from the data
-          content += writeNewsListItem(data);
-        });
-        $('.newsListUl')
-            .html(content)
-            .listview('refresh');
-
-        // rewrite 'a' tags
-        $('.newsListUl')
-            .find("a")
-            .each(function(i, anchor) {
-              if (anchor.href.indexOf("#newsPage") > -1) {
-                // relative links are removed (we're not in the MyTFG website)
-                $(anchor).contents().unwrap();
-              } else {
-                // absolute links are rewritten to use the InAppBrowser
-                $(anchor).attr('onclick', "openWindow(\'"+anchor.href+"\')");
-                // the href tag is replaced by a #
-                $(anchor).attr('href', "#");
-              }
-            });
-      }
-    </script>
-    <div data-role="header" data-theme="c" data-tap-toggle="false" data-position="fixed">
-      <a href="#homePage" data-icon="arrow-l" data-direction="reverse" class="button_back">Home</a>
-      <h1>Nieuws</h1>
-      <a data-icon="bars" data-iconpos="notext" href="#newsFilterPanel" data-rel="popup" data-transition="slide" data-position-to="window" class="ui-btn-right"></a>
-    </div>
-
-    <div data-role="panel" id="newsFilterPanel" data-position-fixed="false" data-position="right" data-display="reveal">
-      <script type="text/javascript">
-        $('#newsFilterPanel')
-            .on('panelbeforeopen', function(e, data) {
-              // set the html widgets to the setting of the user preferences
-              var newsFilter = new NewsFilter();
-              $('#linkedInSlider').val(newsFilter.settings.linkedin ? "on" : "off").slider('refresh');
-              $('#facebookSlider').val(newsFilter.settings.facebook ? "on" : "off").slider('refresh');
-            });
-
-        function closeNewsFilterPanel() {
-          $('#newsFilterPanel').panel('close');
-        }
-
-        function applyNewsFilter() {
-          var newsFilter = new NewsFilter();
-          newsFilter.settings.linkedin = $("#linkedInSlider").val() == "on";
-          newsFilter.settings.facebook = $("#facebookSlider").val() == "on";
-          newsFilter.rememberSettings();
-          retrieveNewsFromServer(function(output) {
-            addNewsToCache(output);
-            showNews();
-            closeNewsFilterPanel();
-          });
-        }
-      </script>
-
-      <div data-role="fieldcontain">
-        Wat wil je hier zien?<br/><br/>
-      </div>
-
-      <div data-role="fieldcontain">
-        <img src="img/newsicons/linkedin.gif" width="24px" height="24px"/>&nbsp;&nbsp;LinkedIn nieuws
-        <select name="linkedInSlider" id="linkedInSlider" data-role="slider" data-mini="true" style="float: right">
-          <option value="off">Uit</option>
-          <option value="on">Aan</option>
-        </select>
-      </div>
-
-      <div data-role="fieldcontain">
-        <img src="img/newsicons/facebook.png" width="24px" height="24px"/>&nbsp;&nbsp;Facebook nieuws
-        <select name="facebookSlider" id="facebookSlider" data-role="slider" data-mini="true" data-inline="true" style="float: right">
-          <option value="off">Uit</option>
-          <option value="on">Aan</option>
-        </select>
-      </div>
-
-      <br/>
-      <br/>
-
-      <a style="float: left" data-role="button" data-iconpos="left" data-icon="delete" data-inline="true" data-mini="true" onclick="closeNewsFilterPanel()">Annuleren</a>
-      <a style="float: right" data-role="button" data-iconpos="right" data-icon="check" data-inline="true" data-mini="true" data-theme="b" onclick="applyNewsFilter()">Opslaan</a>
-    </div>
-
-    <div data-role="content" data-iscroll='{"refreshDelay": 2000}'><!-- allow the device to load any external images -->
-      <div class="iscroll-pulldown">
-        <span class="iscroll-pull-icon"></span>
-        <span class="iscroll-pull-label"
-              data-iscroll-loading-text="Het nieuws wordt ververst"
-              data-iscroll-pulled-text="Laat los om het nieuws te verversen">Ververs het nieuws</span>
-      </div>
-      <div id="newsList">
-        <ul class="newsListUl" data-role="listview" data-inset="false" data-divider-theme="d"></ul>
-      </div>
-    </div>
-  </div>
-  <!-- End page: News page -->
-
-  <!-- Page: Settings page -->
-  <div id="settingsPage" data-role="page">
-    <script language="JavaScript">
-      $('#settingsPage')
-          .bind('swiperight', function() {
-            $.mobile.changePage($("#homePage"), {reverse:true});
-          })
-          .on('pagebeforeshow', function(e, data) {
-
-            // prefill the form
-            var user = getUser();
-            if (user != null && user.mobileUser != null) {
-              // we must prefill the date field with yyyy-MM-dd, because that's the HTML5 wire format.. the OS will display it in the users locale
-              $("#dateAvailable").val(user.mobileUser.dateAvailable_yyyyMMdd);
-              if (user.mobileUser.forceAvailable) {
-                $("#forceAvailable").attr("checked", true).checkboxradio("refresh");
-              }
-            }
-
-            $('#settingsButton').click(function() {
-              $.mobile.loading('show');
-
-              var dateAvailable = $('#dateAvailable').val();
-              var forceAvailable = $("#forceAvailable").is(":checked");
-
-              // Set a delay so the spinner appears
-              setTimeout(function() {
-                doPost(
-                  getServiceURL("/user/savesettings"),
-                  {
-                    'personid' : user.personID,
-                    'dateAvailable' : dateAvailable,
-                    'forceAvailable' : forceAvailable
-                  },
-                  false,
-                  function(data) {
-                    if (data.success) {
-                      showAlert('Instellingen opgeslagen.');
-                      user.mobileUser = data.output;
-                      storeUser(user);
-                      $('#settingsButton').unbind("click");
-                      $.mobile.changePage($("#homePage"));
-                    } else {
-                      showAlert('Opslaan mislukt.');
-                      $.mobile.loading('hide');
-                    }
-                  }
-                );
-              }, 200);
-            })
-          })
-
-          .on('pagebeforehide', function (e, data) {
-            $('#settingsButton').unbind("click");
-          });
-    </script>
-    <div data-role="header" data-theme="c" data-tap-toggle="false">
-      <a data-icon="arrow-l" data-direction="reverse" href="#homePage" class="button_back">Home</a>
-      <h1>Instellingen</h1>
-    </div>
-    <div data-role="content">
-      <form id="settingsForm">
-        <div class="ui-hide-label">
-          <input data-theme="c" type="checkbox" name="forceAvailable" id="forceAvailable" data-mini="true"/>
-          <label for="forceAvailable">toon mij altijd als beschikbaar</label>
-        </div><br/>
-
-        <label for="dateAvailable">datum beschikbaar:</label>
-        <input data-theme="c" type="date" name="dateAvailable" id="dateAvailable" data-mini="false"/><br/>
-
-        <input type="button" data-role="button" id="settingsButton" data-icon="check" data-iconpos="right" data-theme="a" value="opslaan"/>
-      </form>
-    </div>
-  </div>
-  <!-- End page: Settings page -->
-
-
+</head>
+<body>
+<header>
+  <div class="tab" id="tab-map">Kaart</div>
+  <div class="tab" id="tab-stream">Stream</div>
+</header>
+<div id="map_canvas"></div>
 </body>
+</html>
