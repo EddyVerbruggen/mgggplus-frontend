@@ -18,18 +18,12 @@ function isMobile() {
   return isIOS() || isAndroid();
 }
 
-function isMacBook() {
-  return window.location.hostname == 'tfg';
-}
-
 function getServiceURL(servicePath) {
   if (isMobile()) {
-    return "http://mobiel.mytfg.nl:9000" + servicePath;
-  } else if (isMacBook()) {
-    return "http://mobiel.mytfg.nl:9000" + servicePath;
-//    return "http://localhost:9000" + servicePath;
+    return "http://mgggplus-backend.herokuapp.com" + servicePath;
   } else {
-    return "http://www.thumbrater.com:9005" + servicePath;
+    // localhost can be used while developing the backend
+    return "http://localhost:9000" + servicePath;
   }
 }
 
@@ -47,16 +41,12 @@ function invokeRemote(method, url, data, async, successFunction) {
     url  : url,
     data : data,
     dataType : 'json',
-    headers : {'X-username' : getLoginName(), 'X-token' : getTokenFromSession()},
     async: async,
     success : function(data) {
                 successFunction(data);
               },
-    //TODO: Error Handling
     error : function(XMLHttpRequest, textStatus, errorThrown) {
-              if (XMLHttpRequest.status = 401) {
-                $.mobile.changePage($("#loginPage"), {transition:"none"});
-              } else if (XMLHttpRequest.status == 0) {
+              if (XMLHttpRequest.status == 0) {
                 showAlert("Server onbereikbaar " + errorThrown);
               } else {
                 showAlert("Service failed: " + url + ", " + textStatus + "; " + errorThrown);

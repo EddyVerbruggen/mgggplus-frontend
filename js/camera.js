@@ -15,31 +15,20 @@ function captureImage() {
 }
 
 function onSuccessCamera(imageData) {
-  var theImage = "data:image/jpeg;base64," + imageData;
-
-//  $.mobile.loading('show');
-  // Set a delay so the spinner appears
-  $(clickedImage).attr('src', theImage); // TODO move to successfunction
-  setTimeout(function() {
-    doPost(
-      getServiceURL("/user/savephoto"),
-      {
-        'project' : project,
-        'photo' : imageData
-      },
-      true,
-      function(data) {
-        if (data.success) {
-          // change the image in the view
-          showAlert("Op de server opslaan is gelukt");
-//          $.mobile.loading('hide');
-        } else {
-          showAlert("Op de server opslaan is mislukt");
-//          $.mobile.loading('hide');
-        }
-      }
-    );
-  }, 250);
+  doPost(
+    getServiceURL("/photo/save"),
+    {
+      'projectref' : project,
+      'content' : imageData
+    },
+    true,
+    function(data) {
+      // change the image in the view
+      showAlert("De afbeelding is met groot succes opgeslagen op de server!");
+      // show the image immediately
+      $(clickedImage).attr('src', "data:image/jpeg;base64," + imageData);
+    }
+  );
 }
 
 function onFailCamera(message) {
