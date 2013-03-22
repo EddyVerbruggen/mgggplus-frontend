@@ -12,12 +12,6 @@ input, textarea {
   -webkit-user-select: auto !important;
 }
 
-@media (min-width:640px), (min-height:740px) {
-  /*.ui-page {*/
-  /*background-size: 964px 1136px;*/
-  /*}*/
-}
-
 header {
   height: 40px;
   background-color: black;
@@ -33,13 +27,11 @@ header {
   height: 40px;
   line-height: 40px;
   text-align: center;
-  font-weight: bold;
-  border-left: 1px inset white;
 }
 
 header .tab:last-child {
   float: right;
-  border-right: 1px inset white;
+  border-left: 1px inset white;
 }
 
 #map_canvas {
@@ -73,3 +65,37 @@ header .tab:last-child {
   right: 14px;
   z-index: 1001;
 }
+
+.tab-active {
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+#page_stream {
+  display: none;
+  background-color: #eee;
+}
+
+#page_stream {
+  padding-right: 12px;
+}
+
+#page_stream img {
+  float: left;
+  clear: none;
+  border: 1px solid black;
+  margin-left: 10px;
+  margin-top: 10px;
+  width: 100px;
+  height: 100px;
+}
+
+@media (min-width:480px) {
+  #page_stream img {
+    margin-left: 20px;
+    margin-top: 20px;
+    width: 200px;
+    height: 200px;
+  }
+}
+

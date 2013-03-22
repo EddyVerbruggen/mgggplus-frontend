@@ -9,8 +9,8 @@ function captureImage() {
     destinationType:Camera.DestinationType.DATA_URL, // base64
     encodingType:Camera.EncodingType.JPEG,
     sourceType:sourceType, // camera or photoroll, depending on user choice
-    targetWidth:398, // = double size for retina
-    targetHeight:398 // 266
+    targetWidth:400, // = double size for retina
+    targetHeight:400 // 266
   });
 }
 

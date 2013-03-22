@@ -19,7 +19,7 @@ function isMobile() {
 }
 
 function getServiceURL(servicePath) {
-  if (isMobile()) {
+  if (true || isMobile()) {
     return "http://mgggplus-backend.herokuapp.com" + servicePath;
   } else {
     // localhost can be used while developing the backend

@@ -23,6 +23,37 @@
       } else {
         onDeviceReady(); // desktop
       }
+
+      // deal with clicks on the tabs
+      $(".tab").bind("click", function() {
+        var thisID = $(this).attr('id');
+        $(".tab").each(function(i, theTab) {
+          var pageOfTab = $(theTab).attr('data-for');
+          if ($(theTab).attr('id') == thisID) {
+            $(theTab).addClass("tab-active");
+            $(pageOfTab).show().trigger('click');
+          } else {
+            $(theTab).removeClass("tab-active");
+            $(pageOfTab).hide();
+          }
+        })
+      });
+
+      // what to do when the stream tab is clicked? refresh the stream!
+      $("#page_stream").bind("click", function() {
+        var that = $(this);
+        doGet(
+            getServiceURL("/photo/load/all"),
+            true,
+            function(data) {
+              $(data).each(function (i, photo) {
+                // TODO if not yet shown.. so cache the last ID of the stream (which is sorted as newest last
+                $(that).prepend('<img src="data:image/jpeg;base64,'+photo.content+'"/>');
+              });
+            }
+        );
+      });
+
     });
 
     function determineGeo() {
@@ -51,7 +82,12 @@
 
     // onError Callback receives a PositionError object
     function onError(error) {
-      showAlert("Geolocation ging de mist in. " + error);
+      // just show some default location (Zeist)
+      initialLocation = new google.maps.LatLng(52.091195, 5.241208);
+      map.setCenter(initialLocation);
+      if (isMobile()) {
+        showAlert("Geolocation ging de mist in. " + error);
+      }
     }
 
     function onDeviceReady() {
@@ -61,6 +97,7 @@
 
         // make sure the google map is exactly the height of the page minus the header
         document.getElementById('map_canvas').style.height = (document.documentElement.clientHeight - 42) + 'px';
+        document.getElementById('page_stream').style.height = (document.documentElement.clientHeight - 42) + 'px';
 
         // create a custom style to suppress the POI's (which contain external links which we don't want)
         var noPoiStyle = [
@@ -159,9 +196,10 @@
 </head>
 <body>
 <header>
-  <div class="tab" id="tab-map">Kaart</div>
-  <div class="tab" id="tab-stream">Stream</div>
+  <div class="tab tab-active" data-for="#map_canvas"  id="tab-map">Kaart</div>
+  <div class="tab"            data-for="#page_stream" id="tab-stream">Stream</div>
 </header>
-<div id="map_canvas"></div>
+<div class="page" id="map_canvas"></div>
+<div class="page" id="page_stream"></div>
 </body>
 </html>
