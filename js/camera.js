@@ -3,7 +3,7 @@
 var clickedImage, sourceType, project = null;
 
 function captureImage() {
-  navigator.camera.getPicture(onSuccess, onFail, {
+  navigator.camera.getPicture(onSuccessCamera, onFailCamera, {
     quality:50,
     allowEdit:true, // ignored by Android
     destinationType:Camera.DestinationType.DATA_URL, // base64
@@ -14,12 +14,12 @@ function captureImage() {
   });
 }
 
-function onSuccess(imageData) {
+function onSuccessCamera(imageData) {
   var theImage = "data:image/jpeg;base64," + imageData;
 
 //  $.mobile.loading('show');
   // Set a delay so the spinner appears
-  setTimeout(function() {
+//  setTimeout(function() {
     doPost(
       getServiceURL("/user/savephoto"),
       {
@@ -39,10 +39,10 @@ function onSuccess(imageData) {
         }
       }
     );
-  }, 250);
+//  }, 250);
 }
 
-function onFail(message) {
+function onFailCamera(message) {
   if (message == "no camera available") {
     navigator.notification.alert("Er is geen geschikte camera gevonden.", {}, "Probleempje..", "Sluiten");
   }
