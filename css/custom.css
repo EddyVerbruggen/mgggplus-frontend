@@ -59,8 +59,6 @@ header .tab:last-child {
 .triodosInfoWindow img {
   margin-bottom: 4px;
   border: 1px solid #000;
-  height: auto !important;
-  max-width: 199px !important;
 }
 
 .triodosInfoWindow div.metaInfo {
