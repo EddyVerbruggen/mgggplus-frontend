@@ -1,0 +1,90 @@
+[
+  {
+    "user":{
+      "name":"Berend Botje",
+      "image":"img/pasfoto/4.jpg"
+    },
+    "networkUpdateTypes":[
+      {
+      "name":"img/linkedin.gif"
+      }
+    ],
+    "date":"28-09-2012",
+    "message":"Ik heb een klus gevonden! Thx all.",
+    "nrOfReactions":"2"
+  },
+  {
+    "user" : {
+      "name" : "Kees Pietersen",
+      "image" : "img/pasfoto/2.gif"
+    },
+    "networkUpdateTypes" : [
+      {"name" : "img/favourite.png"},
+      {"name" : "img/company.gif"}
+    ],
+    "date" : "18-09-2012",
+    "message" : "Ik hou van deze killer app :)",
+    "nrOfReactions" : "1"
+  },
+  {
+    "user" : {
+      "name" : "Janneke Jansen",
+      "image" : "img/pasfoto/1.gif"
+    },
+    "networkUpdateTypes" : [
+    ],
+    "date" : "08-09-2012",
+    "message" : "Wie weet iets van Magento?",
+    "nrOfReactions" : "45"
+  },
+  {
+    "user":{
+      "name":"Berend Botje",
+      "image":"img/pasfoto/4.jpg"
+    },
+    "networkUpdateTypes":[
+      {
+        "name":"img/linkedin.gif"
+      }
+    ],
+    "date":"01-09-2012",
+    "message":"Ik zoek een PHP opdracht in Amsterdam.",
+    "nrOfReactions":"0"
+  },
+  {
+    "user":{
+      "name":"Jopie Karelsen",
+      "image":"img/pasfoto/3.jpg"
+    },
+    "networkUpdateTypes":[
+    ],
+    "date":"25-08-2012",
+    "message":"Ik zoek een Java klus in de buurt van Enschede",
+    "nrOfReactions":"9"
+  },
+  {
+    "user":{
+      "name":"Berend Botje",
+      "image":"img/pasfoto/4.jpg"
+    },
+    "networkUpdateTypes":[
+      {
+        "name":"img/linkedin.gif"
+      }
+    ],
+    "date":"17-08-2012",
+    "message":"Skills toegevoegd: PHP, HTML, CSS.",
+    "nrOfReactions":"1"
+  },
+  {
+    "user" : {
+      "name" : "Janneke Jansen",
+      "image" : "img/pasfoto/1.gif"
+    },
+    "networkUpdateTypes" : [
+    ],
+    "date" : "17-08-2012",
+    "message" : "Leuke app dit, eens kijken of ik er wat mee kan.",
+    "nrOfReactions" : "3"
+  }
+]

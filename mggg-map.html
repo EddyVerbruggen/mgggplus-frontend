@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=0"/>
+  <title>MGGG Plus</title>
+  <link rel="stylesheet" href="css/custom.css" type="text/css"/>
+  <script src="js/lib/jquery-1.9.1.min.js"></script>
+  <script src="js/custom.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="http://maps.googleapis.com/maps/api/js?sensor=true&language=nl&region=NL"></script>
+  <script src="js/camera.js"></script>
+  <script src="phonegap.js"></script>
+  <script type="text/javascript">
+    "use strict";
+
+    var initialLocation, clientLocation, map, infoPopup = null;
+
+    $(document).ready(function () {
+      // init phonegap
+      if (isMobile()) {
+        document.addEventListener('deviceready', onDeviceReady, false);
+      } else {
+        onDeviceReady(); // desktop
+      }
+    });
+
+    function determineGeo() {
+      if (initialLocation == null) {
+        navigator.geolocation.getCurrentPosition(onSuccess, onError, {timeout: 6000, enableHighAccuracy: false, maximumAge: 60000});
+      }
+    }
+
+    // onSuccess Geolocation
+    function onSuccess(position) {
+      initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+      map.setCenter(initialLocation);
+      showClientLocation();
+    }
+
+    function showClientLocation() {
+      if (clientLocation == null) {
+        clientLocation = new google.maps.Marker({
+          map: map,
+          title: 'Hier ben jij ongeveer',
+          icon: 'images/mylocation-x1.png'
+        });
+      }
+      clientLocation.setPosition(initialLocation);
+    }
+
+    // onError Callback receives a PositionError object
+    function onError(error) {
+      showAlert("Geolocation ging de mist in. " + error);
+    }
+
+    function onDeviceReady() {
+
+      // start loading the map after a little delay to give the device the time to load the header (otherwise the screen is blank until the map is loaded)
+      setTimeout(function () {
+
+        // make sure the google map is exactly the height of the page minus the header
+        document.getElementById('map_canvas').style.height = (document.documentElement.clientHeight - 40) + 'px';
+
+        // create a custom style to suppress the POI's (which contain external links which we don't want)
+        var noPoiStyle = [
+          {
+            featureType: "poi",
+            elementType: "labels"
+          }
+        ];
+        map = new google.maps.Map(document.getElementById("map_canvas"),
+            {
+              mapTypeControlOptions: {
+                mapTypeIds: ['suppressPOIs', google.maps.MapTypeId.ROADMAP]
+              },
+              mapTypeId: 'suppressPOIs',
+              disableDefaultUI: true,
+              zoomControl: true,
+              zoomControlOptions: {
+                position: google.maps.ControlPosition.LEFT_BOTTOM
+              },
+              streetViewControl: true,
+              streetViewControlOptions: {
+                position: (isIOS() ? google.maps.ControlPosition.LEFT_BOTTOM : google.maps.ControlPosition.RIGHT_BOTTOM)
+              },
+              enableHighAccuracy: false // no GPS access required
+            });
+        map.mapTypes.set('suppressPOIs', new google.maps.StyledMapType(noPoiStyle, {name: 'No POIs please'}));
+
+        // Load the KML file (cached by Google)
+        var ctaLayer = new google.maps.KmlLayer(
+            'http://www.triodos.nl/projects.kml?hostPrefix=nl&country=nl&lang=nl',
+            {
+              suppressInfoWindows: true, // we want our own
+              map: map
+            });
+
+        google.maps.event.addListener(ctaLayer, 'click', function (kmlEvent) {
+          showInfoWindowWithKMLContent(kmlEvent.featureData.description, kmlEvent.latLng);
+        });
+
+        // after the KLM file is loaded, determine geolocation and set zoomlevel of the user
+        google.maps.event.addListenerOnce(ctaLayer, "defaultviewport_changed", function () {
+          google.maps.event.addListenerOnce(map, "bounds_changed", function () {
+            determineGeo();
+            map.setZoom(12); // lower number = wider view
+          });
+        });
+      }, 500);
+    }
+
+    function showInfoWindowWithKMLContent(text, latlng) {
+      // replace all (relative) links (/g for global), so the links open correctly
+      text = text.replace(/\"\?projectId=/g, 'http://www.triodos.nl/nl/over-triodos-bank/mijngeldgaatgoed/resultaten/?projectId=');
+      // add a class to the first two divs, so we can style the meta info
+      text = text.replace(/<div>/, '<div class="metaInfo">');
+      text = text.replace(/<div>/, '<div class="metaInfo">');
+      var content = "";
+      //content += '<span class="camera"><img src="images/camera.png" width="32px" height="32px" onclick="cameraIconClicked(document.getElementById('pasfoto'))"/></span>';
+      content += "<div class=\"triodosInfoWindow\">" + text + "</div>";
+//      content += '<div class="camera"><img src="images/camera.png" width="32px" height="32px" onclick="alert($(\'.triodosInfoWindow img\'))"/></div>';
+      content += '<div class="camera"><a href="#" onclick="cameraIconClicked(extractProjectId(text), $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
+
+      if (infoPopup != null) {
+        infoPopup.close();
+      }
+      infoPopup = new google.maps.InfoWindow({
+        content: content,
+        maxWidth: 230,
+        position: latlng,
+        pixelOffset: new google.maps.Size(0, 14),
+        map: map
+      });
+    }
+
+    function extractProjectId(text) {
+      // 'text' contains stuff like this: <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><img src="http://projects.triodos.com/projects/nl/philosophy_of_life/3033_pola_van_der_donck_stichting/03033_L1040053.jpg" height="133" width="199"></a><a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><strong>Pola van der Donck Stichting</strong></a><div>Levensbeschouwing</div><div>Kampen, Nederland</div><div>In 1999 werd de Pola van der Donck Stichting opgericht. Deze stichting... <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank">Meer&#187;</a></div>
+      var startIndexString = "?projectId=";
+      var startIndex = text.indexOf(startIndexString);
+
+      var endIndexString = "&amp;";
+      var endIndex = text.indexOf(endIndexString);
+
+      return text.substring(startIndex + startIndexString.length, endIndex);
+    }
+
+    function popupIFrameLoaded() {
+      setTimeout(function () {
+        try {
+          var contentHeight = document.getElementById('dynFrame').contentWindow.document.body.offsetHeight + 10 + 'px';
+          document.getElementById('dynFrame').style.height = contentHeight;
+          document.getElementById('dragger').style.height = contentHeight;
+        } catch (ignore) { // probably a permission denied warning because we try to access contents of a remote iframe
+        }
+      }, 2500);
+    }
+  </script>
+</head>
+<body>
+<header>
+  <div class="tab" id="tab-map">Kaart</div>
+  <div class="tab" id="tab-stream">Stream</div>
+</header>
+<div id="map_canvas"></div>
+</body>
+</html>

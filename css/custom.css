@@ -1,0 +1,72 @@
+* {
+  -webkit-touch-callout: none !important; /* prevent callout to copy image, etc when tap to hold */
+  -webkit-text-size-adjust: none !important; /* prevent webkit from resizing text to fit */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0) !important; /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+  -webkit-user-select: none !important; /* prevent copy paste, to allow, change 'none' to 'text' */
+  margin: 0;
+  padding: 0;
+  font: 12px Arial;
+}
+
+input, textarea {
+  -webkit-user-select: auto !important;
+}
+
+@media (min-width:640px), (min-height:740px) {
+  /*.ui-page {*/
+  /*background-size: 964px 1136px;*/
+  /*}*/
+}
+
+header {
+  height: 40px;
+  background-color: black;
+}
+
+.tab {
+  float: left;
+  background-color: black;
+  color: white;
+  width: 49%;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+}
+
+header .tab:last-child {
+  float: right;
+  border-left: 1px inset white;
+}
+
+#map_canvas {
+  float: left;
+  width: 100%;
+}
+
+.triodosInfoWindow {
+  position: relative;
+  z-index: 200;
+}
+
+.triodosInfoWindow div {
+  font-size: 0.9em;
+}
+
+.triodosInfoWindow img {
+  margin-right: 30px;
+  margin-bottom: 4px;
+  border: 1px solid #000;
+}
+
+.triodosInfoWindow div.metaInfo {
+  color: #999;
+  font-size: 0.85em;
+}
+
+.camera {
+  float: left;
+  position: absolute;
+  top: 144px;
+  right: 14px;
+  z-index: 1001;
+}

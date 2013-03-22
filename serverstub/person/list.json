@@ -1,0 +1,93 @@
+[
+  {
+    "id":"3",
+    "name":"Berend Botje",
+    "photo":"4.jpg",
+    "maatschap":"Java",
+    "statusDate":"01-01-2013",
+    "status":"Tot 1-4 bij de Rabobank",
+    "available":"true",
+    "dateAvailable":"01-06-2013"
+  },
+  {
+    "id":"4",
+    "name":"Klaas de Vries",
+    "photo":"2.gif",
+    "maatschap":"Java",
+    "statusDate":"01-01-2013",
+    "status" : "Beschikbaar per 1-2 voor een nieuwe uitdaging",
+    "available":"false",
+    "dateAvailable":"01-06-2013"
+  },
+  {
+    "id":"5",
+    "name":"Henk Jansen",
+    "photo":"onbekend.jpg",
+    "maatschap":"Java",
+    "statusDate":"01-01-2013",
+    "status" : "",
+    "available":"false",
+    "dateAvailable":"01-06-2013"
+  },
+  {
+    "id":"6",
+    "name":"Frits Arendsen",
+    "photo":"onbekend.jpg",
+    "maatschap":"Oracle",
+    "statusDate":"01-01-2013",
+    "status" : "Tot 1-8 bezig met Oracle migratie bij Delta Lloyd",
+    "available":"false",
+    "dateAvailable":"01-06-2013"
+  },
+  {
+    "id":"7",
+    "name":"Judith de Vries",
+    "photo":"onbekend.jpg",
+    "maatschap":"Oracle",
+    "statusDate":"01-01-2013",
+    "status" : "",
+    "available":"false",
+    "dateAvailable":"01-06-2013"
+  },
+  {
+    "id":"8",
+    "name":"James Jones",
+    "photo":"1.gif",
+    "maatschap":"Testing",
+    "statusDate":"01-01-2013",
+    "status" : "",
+    "available":"false",
+    "dateAvailable":"01-06-2013"
+  },
+  {
+    "id":"9",
+    "name":"Irene van der Veen",
+    "photo":"3.jpg",
+    "maatschap":"Testing",
+    "statusDate":"01-01-2013",
+    "status" : "",
+    "available":"false",
+    "dateAvailable":"01-06-2013"
+  },
+  {
+    "id":"10",
+    "name":"Ineke in 't Veld",
+    "photo":"onbekend.jpg",
+    "maatschap":"Testing",
+    "statusDate":"01-01-2013",
+    "status" : "",
+    "available":"false",
+    "dateAvailable":"01-06-2013"
+  },
+  {
+    "id":"11",
+    "name":"Ernest Gramsveen",
+    "photo":"onbekend.jpg",
+    "maatschap":"Testing",
+    "statusDate":"",
+    "status" : "",
+    "available":"false",
+    "dateAvailable":"01-06-2013"
+  }
+
+]
