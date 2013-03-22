@@ -46,10 +46,12 @@
             getServiceURL("/photo/load/all"),
             true,
             function(data) {
+              var content = "";
               $(data).each(function (i, photo) {
                 // TODO if not yet shown.. so cache the last ID of the stream (which is sorted as newest last
-                $(that).prepend('<img src="data:image/jpeg;base64,'+photo.content+'"/>');
+                content += '<img src="data:image/jpeg;base64,'+photo.content+'"/>';
               });
+              $(that).html(content);
             }
         );
       });
