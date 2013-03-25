@@ -55,6 +55,50 @@ function invokeRemote(method, url, data, async, successFunction) {
   });
 }
 
+// watch the stream for new items every 10 seconds (poor man's websocket)
+function checkForNewPhotos() {
+  doGet(
+      getServiceURL("/photo/newitemcount/" + getLastSeenPhotoID()),
+      true,
+      function(data) {
+        updateCountBubble(data);
+        setTimeout(checkForNewPhotos, 10000);
+      }
+  );
+}
+
+function retrieveAndShowStreamImages(element) {
+  var that = $(element);
+  doGet(
+      getServiceURL("/photo/newitems/"+getLastSeenPhotoID()),
+      true,
+      function(data) {
+        var newImages = data;
+        var storedImages = JSON.parse(localStorage.getItem("storedImages"));
+        if (storedImages != null) {
+          newImages = $.merge(data, storedImages);
+        }
+        localStorage.setItem("storedImages", JSON.stringify(newImages));
+
+        var content = "";
+        $(newImages).each(function (i, photo) {
+          // the first item is the newest, so remember its ID
+          if (i==0) {
+            setLastSeenPhotoID(photo.id);
+          }
+          content += '<img src="data:image/jpeg;base64,'+photo.content+'"/>';
+        });
+        $(that.html(content));
+      }
+  );
+}
+
+function updateCountBubble(items) {
+  $("#newPhotoCount")
+      .html(items)
+      .css({'visibility':(items==0 ? 'hidden' : 'visible')});
+}
+
 function getPhoto(person) {
   if (person.mobileUser != null && person.mobileUser.photoContent != null) {
     return "data:image/jpeg;base64,"+person.mobileUser.photoContent;
@@ -69,40 +113,18 @@ function getPhoto(person) {
   }
 }
 
-//function savePersons(persons) {
-//  localStorage.setItem("persons", persons);
-//}
+function setLastSeenPhotoID(id) {
+  localStorage.setItem("lastSeenPhotoID", id);
+}
 
-//function loadPersons() {
-//  return localStorage.getItem("persons");
-//}
-
-//function addRequestsToCache(requests) {
-//  localStorage.setItem("requests", JSON.stringify(requests));
-//}
-
-//function loadRequests() {
-//  var storedRequests = localStorage.getItem("requests");
-//  if (storedRequests != "undefined") {
-//    return JSON.parse(storedRequests);
-//  } else {
-//    return null;
-//  }
-//}
-
-//function retrieveRequestsFromServer(successCallback) {
-//  doGet(
-//      getServiceURL("/request/list"),
-//      true,
-//      function(data) {
-//        if (data.success) {
-//          if (successCallback != null) {
-//            successCallback(data.output);
-//          }
-//        }
-//      }
-//  );
-//}
+function getLastSeenPhotoID() {
+  var lastSeenPhotoID = localStorage.getItem("lastSeenPhotoID");
+  if (lastSeenPhotoID != "undefined") {
+    return lastSeenPhotoID;
+  } else {
+    return -1;
+  }
+}
 
 function openWindow(pleaseTakeMeHere) {
   // window.open uses the PG InAppBrowser API (http://docs.phonegap.com/en/2.5.0/cordova_inappbrowser_inappbrowser.md.html)

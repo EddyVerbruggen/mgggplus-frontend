@@ -39,23 +39,11 @@
         })
       });
 
-      // what to do when the stream tab is clicked? refresh the stream!
+      // refresh the stream when it's clicked
       $("#page_stream").bind("click", function() {
-        var that = $(this);
-        doGet(
-            getServiceURL("/photo/load/all"),
-            true,
-            function(data) {
-              var content = "";
-              $(data).each(function (i, photo) {
-                // TODO if not yet shown.. so cache the last ID of the stream (which is sorted as newest last
-                content += '<img src="data:image/jpeg;base64,'+photo.content+'"/>';
-              });
-              $(that).html(content);
-            }
-        );
+        updateCountBubble(0);
+        retrieveAndShowStreamImages(this);
       });
-
     });
 
     function determineGeo() {
@@ -94,6 +82,8 @@
 
     function onDeviceReady() {
 
+      checkForNewPhotos();
+
       // start loading the map after a little delay to give the device the time to load the header (otherwise the screen is blank until the map is loaded)
       setTimeout(function () {
 
@@ -123,7 +113,7 @@
               streetViewControlOptions: {
                 position: (isIOS() ? google.maps.ControlPosition.LEFT_BOTTOM : google.maps.ControlPosition.RIGHT_BOTTOM)
               },
-              enableHighAccuracy: false // no GPS access required
+              enableHighAccuracy: true // GPS
             });
         map.mapTypes.set('suppressPOIs', new google.maps.StyledMapType(noPoiStyle, {name: 'No POIs please'}));
 
@@ -184,22 +174,12 @@
       return text.substring(startIndex + startIndexString.length, endIndex);
     }
 
-    function popupIFrameLoaded() {
-      setTimeout(function () {
-        try {
-          var contentHeight = document.getElementById('dynFrame').contentWindow.document.body.offsetHeight + 10 + 'px';
-          document.getElementById('dynFrame').style.height = contentHeight;
-          document.getElementById('dragger').style.height = contentHeight;
-        } catch (ignore) { // probably a permission denied warning because we try to access contents of a remote iframe
-        }
-      }, 2500);
-    }
   </script>
 </head>
 <body>
 <header>
   <div class="tab tab-active" data-for="#map_canvas"  id="tab-map">Kaart</div>
-  <div class="tab"            data-for="#page_stream" id="tab-stream">Stream</div>
+  <div class="tab"            data-for="#page_stream" id="tab-stream">Stream <div id="newPhotoCount">2</div></div>
 </header>
 <div class="page" id="map_canvas"></div>
 <div class="page" id="page_stream"></div>
