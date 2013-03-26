@@ -99,20 +99,6 @@ function updateCountBubble(items) {
       .css({'visibility':(items==0 ? 'hidden' : 'visible')});
 }
 
-function getPhoto(person) {
-  if (person.mobileUser != null && person.mobileUser.photoContent != null) {
-    return "data:image/jpeg;base64,"+person.mobileUser.photoContent;
-  } else if (person.photoContent != null) {
-    return "data:image/jpeg;base64,"+person.photoContent;
-  } else if (person.gender == "MALE") {
-    return "img/pasfoto/male.jpeg";
-  } else if (person.gender == 'FEMALE') {
-    return "img/pasfoto/female.jpeg";
-  } else {
-    return "img/pasfoto/empty.gif";
-  }
-}
-
 function setLastSeenPhotoID(id) {
   localStorage.setItem("lastSeenPhotoID", id);
 }
