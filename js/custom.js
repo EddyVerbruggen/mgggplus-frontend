@@ -97,10 +97,6 @@ function loadProjectPhotos(project) {
             maxwidth: 200,
             namespace: "centered-btns"
           });
-          $('.triodosInfoWindow').on('swiperight', function(e) {
-            alert('zwijp');
-            $('a.next').trigger('click');
-          })
         }
       }
   );

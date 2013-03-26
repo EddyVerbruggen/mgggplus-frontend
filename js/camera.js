@@ -10,7 +10,7 @@ function captureImage() {
     encodingType:Camera.EncodingType.JPEG,
     sourceType:sourceType, // camera or photoroll, depending on user choice
     targetWidth:400, // = double size for retina
-    targetHeight:300 // 266
+    targetHeight:300
   });
 }
 
@@ -27,8 +27,8 @@ function onSuccessCamera(imageData) {
       // change the image in the view
       showAlert("De afbeelding is met groot succes opgeslagen op de server!");
       // show the image immediately
-//      $(clickedImage).attr('src', "data:image/jpeg;base64," + imageData);
-      loadProjectPhotos(project);
+      $(clickedImage).attr('src', "data:image/jpeg;base64," + imageData);
+//      loadProjectPhotos(project);
     }
   );
 }
@@ -53,6 +53,7 @@ function cameraIconClicked(projectID, theElement) {
     );
   } else {
     alert("Dit kan alleen op mobiel");
+//    loadProjectPhotos(project);
   }
 }
 

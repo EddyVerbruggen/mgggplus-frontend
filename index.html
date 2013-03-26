@@ -59,7 +59,7 @@
       if (initialLocation == null) {
         navigator.geolocation.getCurrentPosition(onSuccess, onError, {
           timeout: 6000,
-          enableHighAccuracy: true,
+          enableHighAccuracy: false,
           maximumAge: 60000
         });
       }
@@ -124,7 +124,7 @@
               streetViewControlOptions: {
                 position: (isIOS() ? google.maps.ControlPosition.LEFT_BOTTOM : google.maps.ControlPosition.RIGHT_BOTTOM)
               },
-              enableHighAccuracy: true // GPS
+              enableHighAccuracy: false
             });
 
         map.mapTypes.set('suppressPOIs', new google.maps.StyledMapType(noPoiStyle, {name: 'No POIs please'}));
@@ -161,9 +161,11 @@
       var content = "<div class=\"triodosInfoWindow\">" + text + "</div>";
       content += '<div class="camera">in de buurt? deel een foto <a href="#" onclick="cameraIconClicked('+projectID+', $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
 
+      // one popup at a time
       if (infoPopup != null) {
         infoPopup.close();
       }
+
       infoPopup = new google.maps.InfoWindow({
         content: content,
         maxWidth: 210,
@@ -185,6 +187,7 @@
 
       // check for project-specific photos
       loadProjectPhotos(projectID);
+//      loadProjectPhotos(projectID);
     }
 
     function extractProjectID(text) {
