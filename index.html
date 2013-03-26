@@ -167,10 +167,22 @@
         map: map
       });
 
+      // links are rewritten to use the InAppBrowser
+      $('.triodosInfoWindow')
+          .find("a")
+          .each(function(i, anchor) {
+            $(anchor).attr('onclick', "openWindow(\'"+anchor.href+"\')");
+            // the href tag is replaced by a #
+            $(anchor).attr('href', "#");
+            // remove target="_blank"
+            $(anchor).attr('target', null);
+          });
+
       // check for project-specific photos
       loadProjectPhotos(projectID, function(data) {
         if (data != "") {
           $(".triodosInfoWindow img")
+              .unwrap('<a/>')
               .wrap('<ul class="rslides"/>')
               .wrap('<li/>');
           $(data).each(function(index, photo) {
@@ -185,9 +197,9 @@
             maxwidth: 200,
             namespace: "centered-btns"
           });
-          $('ul').bind('swiperight', function() {
+          $('ul').on('swiperight', function(e) {
             alert('zwijp');
-//            $('a.next').trigger('click');
+            $('a.next').trigger('click');
           })
         }
       });
