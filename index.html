@@ -57,7 +57,11 @@
 
     function determineGeo() {
       if (initialLocation == null) {
-        navigator.geolocation.getCurrentPosition(onSuccess, onError, {timeout: 6000, enableHighAccuracy: false, maximumAge: 60000});
+        navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+          timeout: 6000,
+          enableHighAccuracy: true,
+          maximumAge: 60000
+        });
       }
     }
 
@@ -85,7 +89,7 @@
       initialLocation = new google.maps.LatLng(52.091195, 5.241208);
       map.setCenter(initialLocation);
       if (isMobile()) {
-        showAlert("Geolocation ging de mist in. " + error);
+        showAlert("Geolocation ging de mist in: " + error);
       }
     }
 
@@ -122,6 +126,7 @@
               },
               enableHighAccuracy: true // GPS
             });
+
         map.mapTypes.set('suppressPOIs', new google.maps.StyledMapType(noPoiStyle, {name: 'No POIs please'}));
 
         // Load the KML file (cached by Google)
@@ -179,30 +184,7 @@
           });
 
       // check for project-specific photos
-      loadProjectPhotos(projectID, function(data) {
-        if (data != "") {
-          $(".triodosInfoWindow img")
-              .unwrap('<a/>')
-              .wrap('<ul class="rslides"/>')
-              .wrap('<li/>');
-          $(data).each(function(index, photo) {
-            $(".rslides").append('<li><img src="data:image/jpeg;base64,'+photo.content+'" width="200px"/></li>');
-          });
-          $('.rslides').responsiveSlides({
-            random: true,
-            auto: false,
-            pager: true,
-            nav: true,
-            speed: 500,
-            maxwidth: 200,
-            namespace: "centered-btns"
-          });
-          $('ul').on('swiperight', function(e) {
-            alert('zwijp');
-            $('a.next').trigger('click');
-          })
-        }
-      });
+      loadProjectPhotos(projectID);
     }
 
     function extractProjectID(text) {

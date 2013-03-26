@@ -15,7 +15,7 @@ function captureImage() {
 }
 
 function onSuccessCamera(imageData) {
-  showAlert('We slaan een foto op bij project: ' + project);
+//  showAlert('We slaan een foto op bij project: ' + project);
   doPost(
     getServiceURL("/photo/save"),
     {
@@ -27,7 +27,8 @@ function onSuccessCamera(imageData) {
       // change the image in the view
       showAlert("De afbeelding is met groot succes opgeslagen op de server!");
       // show the image immediately
-      $(clickedImage).attr('src', "data:image/jpeg;base64," + imageData);
+//      $(clickedImage).attr('src', "data:image/jpeg;base64," + imageData);
+      loadProjectPhotos(project);
     }
   );
 }

@@ -75,12 +75,33 @@ function checkForNewPhotos() {
   );
 }
 
-function loadProjectPhotos(project, successCallback) {
+function loadProjectPhotos(project) {
   doGet(
       getServiceURL("/photo/load/project/" + project),
       true,
       function(data) {
-        successCallback(data);
+        if (data != "") {
+          $(".triodosInfoWindow img")
+              .unwrap('<a/>')
+              .wrap('<ul class="rslides"/>')
+              .wrap('<li/>');
+          $(data).each(function(index, photo) {
+            $(".rslides").append('<li><img src="data:image/jpeg;base64,'+photo.content+'" width="200px"/></li>');
+          });
+          $('.rslides').responsiveSlides({
+            random: true,
+            auto: false,
+            pager: true,
+            nav: true,
+            speed: 500,
+            maxwidth: 200,
+            namespace: "centered-btns"
+          });
+          $('.triodosInfoWindow').on('swiperight', function(e) {
+            alert('zwijp');
+            $('a.next').trigger('click');
+          })
+        }
       }
   );
 }
