@@ -80,7 +80,7 @@ function retrieveAndShowStreamImages(element) {
         }
         localStorage.setItem("storedImages", JSON.stringify(newImages));
 
-        var content = "";
+        var content = '<div class="stream-description">Hier vindt u de meest recente project afbeeldingen gemaakt door klanten van Triodos Bank. Op de kaart kunt u zelf een foto toevoegen door een project aan te klikken en op het foto icoontje te drukken.</div>';
         $(newImages).each(function (i, photo) {
           // the first item is the newest, so remember its ID
           if (i==0) {
