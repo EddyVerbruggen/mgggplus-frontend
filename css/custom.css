@@ -8,6 +8,10 @@
   font: 12px Arial;
 }
 
+html {
+  background-color: #333;
+}
+
 input, textarea {
   -webkit-user-select: auto !important;
 }
@@ -42,6 +46,7 @@ header .tab:last-child {
 .triodosInfoWindow {
   position: relative;
   z-index: 200;
+  height: 250px;
 }
 
 .triodosInfoWindow div {
@@ -49,22 +54,33 @@ header .tab:last-child {
 }
 
 .triodosInfoWindow img {
-  margin-bottom: 4px;
-  border: 1px solid #000;
+  /*border: 1px solid #000;*/
+  /*display: block;*/
+}
+
+.triodosInfoWindow a strong {
+  margin-top: 10px;
+  margin-bottom: 6px;
   display: block;
 }
 
+.triodosInfoWindow div a {
+  display: none;
+}
+
 .triodosInfoWindow div.metaInfo {
-  color: #999;
-  font-size: 0.85em;
+  display: none;
+  /*color: #999;*/
+  /*font-size: 0.85em;*/
 }
 
 .camera {
-  float: left;
   position: absolute;
-  top: 118px;
+  bottom: 0;
   right: 14px;
   z-index: 1001;
+  color: #777;
+  font-size: 0.8em;
 }
 
 .tab-active {
@@ -74,7 +90,6 @@ header .tab:last-child {
 
 #page_stream {
   display: none;
-  background-color: #333;
 }
 
 #page_stream img {

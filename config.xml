@@ -47,6 +47,8 @@
  	<!--<gap:splash src="splash/android/Default-hdpi.png"  width="480" height="760"  gap:platform="android" gap:density="hdpi" />-->
  	<!--<gap:splash src="splash/android/Default-xhdpi.png" width="720" height="1140" gap:platform="android" gap:density="xhdpi" />-->
 
+  <gap:plugin name="ChildBrowser" /> <!-- latest release -->
+
   <feature name="http://api.phonegap.com/1.0/network"/>
   <feature name="http://api.phonegap.com/1.0/geolocation"/>
   <feature name="http://api.phonegap.com/1.0/camera"/>

@@ -15,7 +15,7 @@ function captureImage() {
 }
 
 function onSuccessCamera(imageData) {
-  alert('saving photo for project: ' + project);
+  showAlert('We slaan een foto op bij project: ' + project);
   doPost(
     getServiceURL("/photo/save"),
     {
@@ -39,7 +39,7 @@ function onFailCamera(message) {
 }
 
 function cameraIconClicked(projectID, theElement) {
-  alert('clicked project: ' + projectID);
+//  alert('clicked project: ' + projectID);
   project = projectID;
   clickedImage = theElement;
 

@@ -6,6 +6,14 @@ window.onerror = function(message, file, line) {
   console.log('Error gevangen: ' + file + ':' + line + '\n' + message);
 };
 
+window.onresize = resizePage;
+
+function resizePage() {
+  // make sure the google map is exactly the height of the page minus the header
+  document.getElementById('map_canvas').style.height = (document.documentElement.clientHeight - 42) + 'px';
+  document.getElementById('page_stream').style.height = (document.documentElement.clientHeight - 42) + 'px';
+}
+
 function isAndroid() {
   return navigator.userAgent.toLowerCase().indexOf("android") > -1;
 }
@@ -67,12 +75,12 @@ function checkForNewPhotos() {
   );
 }
 
-function loadProjectPhotos(project) {
+function loadProjectPhotos(project, successCallback) {
   doGet(
       getServiceURL("/photo/load/project/" + project),
       true,
       function(data) {
-        alert(data);
+        successCallback(data);
       }
   );
 }

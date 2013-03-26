@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=0"/>
   <title>MGGG Plus</title>
+  <link rel="stylesheet" href="js/lib/responsiveslides/responsiveslides.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="js/lib/responsiveslides/themes/themes.css" type="text/css" media="screen" />
   <link rel="stylesheet" href="css/custom.css" type="text/css"/>
   <script src="js/lib/jquery-1.9.1.min.js"></script>
   <script src="js/custom.js"></script>
@@ -12,6 +14,7 @@
   <script src="js/camera.js"></script>
   <script src="js/mapfunctions.js"></script><!-- TODO move some geo stuff to this file -->
   <script src="phonegap.js"></script>
+  <script src="js/lib/responsiveslides/responsiveslides.min.js" defer="defer"></script>
   <script type="text/javascript">
     "use strict";
 
@@ -37,13 +40,18 @@
             $(theTab).removeClass("tab-active");
             $(pageOfTab).hide();
           }
-        })
+        });
       });
 
-      // refresh the stream when it's clicked
+      // refresh the stream when its tab is clicked
       $("#page_stream").bind("click", function() {
         updateCountBubble(0);
         retrieveAndShowStreamImages(this);
+      });
+
+      // refresh the map when its tab is clicked
+      $("#map_canvas").bind("click", function() {
+        google.maps.event.trigger(map, 'resize');
       });
     });
 
@@ -88,9 +96,7 @@
       // start loading the map after a little delay to give the device the time to load the header (otherwise the screen is blank until the map is loaded)
       setTimeout(function () {
 
-        // make sure the google map is exactly the height of the page minus the header
-        document.getElementById('map_canvas').style.height = (document.documentElement.clientHeight - 42) + 'px';
-        document.getElementById('page_stream').style.height = (document.documentElement.clientHeight - 42) + 'px';
+        resizePage();
 
         // create a custom style to suppress the POI's (which contain external links which we don't want)
         var noPoiStyle = [
@@ -147,25 +153,40 @@
       text = text.replace(/<div>/, '<div class="metaInfo">');
       text = text.replace(/<div>/, '<div class="metaInfo">');
       var projectID = extractProjectID(text);
-      var content = "";
-      //content += '<span class="camera"><img src="images/camera.png" width="32px" height="32px" onclick="cameraIconClicked(document.getElementById('pasfoto'))"/></span>';
-      content += "<div class=\"triodosInfoWindow\">" + text + "</div>";
-//      content += '<div class="camera"><img src="images/camera.png" width="32px" height="32px" onclick="alert($(\'.triodosInfoWindow img\'))"/></div>';
-      content += '<div class="camera"><a href="#" onclick="cameraIconClicked('+projectID+', $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
+      var content = "<div class=\"triodosInfoWindow\">" + text + "</div>";
+      content += '<div class="camera">in de buurt? deel een foto! <a href="#" onclick="cameraIconClicked('+projectID+', $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
 
       if (infoPopup != null) {
         infoPopup.close();
       }
       infoPopup = new google.maps.InfoWindow({
         content: content,
-        maxWidth: 230,
+        maxWidth: 210,
         position: latlng,
         pixelOffset: new google.maps.Size(0, 14),
         map: map
       });
 
       // check for project-specific photos
-      loadProjectPhotos(projectID);
+      loadProjectPhotos(projectID, function(data) {
+        if (data != "") {
+          $(".triodosInfoWindow img")
+//              .wrap('<div class="rotateMyImages"/>')
+              .wrap('<ul class="rslides"/>')
+              .wrap('<li/>');
+          $(data).each(function(index, photo) {
+            $(".rslides").append('<li><img src="data:image/jpeg;base64,'+photo.content+'" width="199px"/></li>');
+          });
+          $('.rslides').responsiveSlides({
+            auto: false,
+            pager: true,
+            nav: true,
+            speed: 500,
+            maxwidth: 199,
+            namespace: "transparent-btns"
+          })
+        }
+      });
     }
 
     function extractProjectID(text) {
