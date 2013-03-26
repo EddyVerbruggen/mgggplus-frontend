@@ -67,6 +67,16 @@ function checkForNewPhotos() {
   );
 }
 
+function loadProjectPhotos(project) {
+  doGet(
+      getServiceURL("/photo/load/project/" + project),
+      true,
+      function(data) {
+        alert(data);
+      }
+  );
+}
+
 function retrieveAndShowStreamImages(element) {
   var that = $(element);
   doGet(

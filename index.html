@@ -10,6 +10,7 @@
   <script src="js/camera.js"></script>
   <script src="http://maps.googleapis.com/maps/api/js?sensor=true&language=nl&region=NL"></script>
   <script src="js/camera.js"></script>
+  <script src="js/mapfunctions.js"></script><!-- TODO move some geo stuff to this file -->
   <script src="phonegap.js"></script>
   <script type="text/javascript">
     "use strict";
@@ -145,11 +146,12 @@
       // add a class to the first two divs, so we can style the meta info
       text = text.replace(/<div>/, '<div class="metaInfo">');
       text = text.replace(/<div>/, '<div class="metaInfo">');
+      var projectID = extractProjectID(text);
       var content = "";
       //content += '<span class="camera"><img src="images/camera.png" width="32px" height="32px" onclick="cameraIconClicked(document.getElementById('pasfoto'))"/></span>';
       content += "<div class=\"triodosInfoWindow\">" + text + "</div>";
 //      content += '<div class="camera"><img src="images/camera.png" width="32px" height="32px" onclick="alert($(\'.triodosInfoWindow img\'))"/></div>';
-      content += '<div class="camera"><a href="#" onclick="cameraIconClicked(extractProjectId(text), $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
+      content += '<div class="camera"><a href="#" onclick="cameraIconClicked('+projectID+', $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
 
       if (infoPopup != null) {
         infoPopup.close();
@@ -161,9 +163,12 @@
         pixelOffset: new google.maps.Size(0, 14),
         map: map
       });
+
+      // check for project-specific photos
+      loadProjectPhotos(projectID);
     }
 
-    function extractProjectId(text) {
+    function extractProjectID(text) {
       // 'text' contains stuff like this: <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><img src="http://projects.triodos.com/projects/nl/philosophy_of_life/3033_pola_van_der_donck_stichting/03033_L1040053.jpg" height="133" width="199"></a><a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><strong>Pola van der Donck Stichting</strong></a><div>Levensbeschouwing</div><div>Kampen, Nederland</div><div>In 1999 werd de Pola van der Donck Stichting opgericht. Deze stichting... <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank">Meer&#187;</a></div>
       var startIndexString = "?projectId=";
       var startIndex = text.indexOf(startIndexString);
@@ -182,6 +187,6 @@
   <div class="tab"            data-for="#page_stream" id="tab-stream">stream <div id="newPhotoCount">2</div></div>
 </header>
 <div class="page" id="map_canvas"></div>
-<div class="page" id="page_stream">xxx</div>
+<div class="page" id="page_stream"></div>
 </body>
 </html>
