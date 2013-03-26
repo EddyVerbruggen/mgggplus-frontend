@@ -18,7 +18,7 @@
   <script type="text/javascript">
     "use strict";
 
-    var initialLocation, clientLocation, map, infoPopup = null;
+    var map, infoWindow = null;
 
     $(document).ready(function () {
       // init phonegap
@@ -56,41 +56,30 @@
     });
 
     function determineGeo() {
-      if (initialLocation == null) {
-        navigator.geolocation.getCurrentPosition(onSuccess, onError, {
-          timeout: 6000,
-          enableHighAccuracy: false,
-          maximumAge: 60000
-        });
-      }
+      navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError, {
+        timeout: 6000,
+        enableHighAccuracy: false,
+        maximumAge: 60000
+      });
     }
 
-    // onSuccess Geolocation
-    function onSuccess(position) {
-      initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-      map.setCenter(initialLocation);
-      showClientLocation();
-    }
-
-    function showClientLocation() {
-      if (clientLocation == null) {
-        clientLocation = new google.maps.Marker({
-          map: map,
-          title: 'Hier ben jij ongeveer',
-          icon: 'images/mylocation-x1.png'
-        });
-      }
-      clientLocation.setPosition(initialLocation);
-    }
-
-    // onError Callback receives a PositionError object
-    function onError(error) {
+    function onGeoError(error) {
       // just show some default location (Zeist)
-      initialLocation = new google.maps.LatLng(52.091195, 5.241208);
-      map.setCenter(initialLocation);
+      map.setCenter(new google.maps.LatLng(52.091195, 5.241208));
       if (isMobile()) {
         showAlert("Geolocation ging de mist in: " + error);
       }
+    }
+
+    function onGeoSuccess(position) {
+      var initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
+      map.setCenter(initialLocation);
+
+      // add a marker on the client location
+      new google.maps.Marker({
+        map: map,
+        icon: 'images/mylocation-x1.png'
+      }).setPosition(initialLocation);
     }
 
     function onDeviceReady() {
@@ -102,19 +91,9 @@
 
         resizePage();
 
-        // create a custom style to suppress the POI's (which contain external links which we don't want)
-        var noPoiStyle = [
-          {
-            featureType: "poi",
-            elementType: "labels"
-          }
-        ];
         map = new google.maps.Map(document.getElementById("map_canvas"),
             {
-              mapTypeControlOptions: {
-                mapTypeIds: ['suppressPOIs', google.maps.MapTypeId.ROADMAP]
-              },
-              mapTypeId: 'suppressPOIs',
+              mapTypeId: google.maps.MapTypeId.ROADMAP,
               disableDefaultUI: true,
               zoomControl: true,
               zoomControlOptions: {
@@ -123,25 +102,23 @@
               streetViewControl: true,
               streetViewControlOptions: {
                 position: (isIOS() ? google.maps.ControlPosition.LEFT_BOTTOM : google.maps.ControlPosition.RIGHT_BOTTOM)
-              },
-              enableHighAccuracy: false
+              }
             });
-
-        map.mapTypes.set('suppressPOIs', new google.maps.StyledMapType(noPoiStyle, {name: 'No POIs please'}));
 
         // Load the KML file (cached by Google)
         var ctaLayer = new google.maps.KmlLayer(
             'http://www.triodos.nl/projects.kml?hostPrefix=nl&country=nl&lang=nl',
             {
-              suppressInfoWindows: true, // we want our own
+              suppressInfoWindows: true, // suppress the default popup, so we can manipulate its contents
               map: map
             });
 
+        // add a click handler to the markers of the KML file
         google.maps.event.addListener(ctaLayer, 'click', function (kmlEvent) {
           showInfoWindowWithKMLContent(kmlEvent.featureData.description, kmlEvent.latLng);
         });
 
-        // after the KLM file is loaded, determine geolocation and set zoomlevel of the user
+        // after the KML file is loaded, determine geolocation and set zoomlevel of the user
         google.maps.event.addListenerOnce(ctaLayer, "defaultviewport_changed", function () {
           google.maps.event.addListenerOnce(map, "bounds_changed", function () {
             determineGeo();
@@ -152,21 +129,22 @@
     }
 
     function showInfoWindowWithKMLContent(text, latlng) {
-      // replace all (relative) links (/g for global), so the links open correctly
-      text = text.replace(/\"\?projectId=/g, 'http://www.triodos.nl/nl/over-triodos-bank/mijngeldgaatgoed/resultaten/?projectId=');
-      // add a class to the first two divs, so we can style the meta info
-      text = text.replace(/<div>/, '<div class="metaInfo">');
-      text = text.replace(/<div>/, '<div class="metaInfo">');
       var projectID = extractProjectID(text);
-      var content = "<div class=\"triodosInfoWindow\">" + text + "</div>";
-      content += '<div class="camera">in de buurt? deel een foto <a href="#" onclick="infoPopup.close(); cameraIconClicked('+projectID+', $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
+      var content = '' +
+          '<div class="triodosInfoWindow">' + sanitiseKmlContent(text) + '</div>' +
+          '<div class="camera">' +
+          '  in de buurt? deel een foto ' +
+          '  <a href="#" onclick="infoWindow.close(); cameraIconClicked('+projectID+', $(\'.triodosInfoWindow img\'))">' +
+          '    <img src="images/camera.png" width="32px" height="32px"/>' +
+          '  </a>' +
+          '</div>';
 
-      // one popup at a time
-      if (infoPopup != null) {
-        infoPopup.close();
+      // allow only one popup at a time
+      if (infoWindow != null) {
+        infoWindow.close();
       }
 
-      infoPopup = new google.maps.InfoWindow({
+      infoWindow = new google.maps.InfoWindow({
         content: content,
         maxWidth: 210,
         position: latlng,
@@ -174,41 +152,30 @@
         map: map
       });
 
-      // links are rewritten to use the InAppBrowser
-      $('.triodosInfoWindow')
-          .find("a")
-          .each(function(i, anchor) {
-            $(anchor).attr('onclick', "openWindow(\'"+anchor.href+"\')");
-            // the href tag is replaced by a #
-            $(anchor).attr('href', "#");
-            // remove target="_blank"
-            $(anchor).attr('target', null);
-          });
+      // rewrite any links in the popup to use the InAppBrowser
+      $('.triodosInfoWindow a').each(function(i, anchor) {
+        $(anchor).attr('onclick', "openWindow(\'"+anchor.href+"\')");
+        // the href tag is replaced by a #
+        $(anchor).attr('href', "#");
+        // remove target="_blank"
+        $(anchor).attr('target', null);
+      });
 
       // check for project-specific photos
       loadProjectPhotos(projectID);
-//      loadProjectPhotos(projectID);
-    }
-
-    function extractProjectID(text) {
-      // 'text' contains stuff like this: <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><img src="http://projects.triodos.com/projects/nl/philosophy_of_life/3033_pola_van_der_donck_stichting/03033_L1040053.jpg" height="133" width="199"></a><a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><strong>Pola van der Donck Stichting</strong></a><div>Levensbeschouwing</div><div>Kampen, Nederland</div><div>In 1999 werd de Pola van der Donck Stichting opgericht. Deze stichting... <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank">Meer&#187;</a></div>
-      var startIndexString = "?projectId=";
-      var startIndex = text.indexOf(startIndexString);
-
-      var endIndexString = "&amp;";
-      var endIndex = text.indexOf(endIndexString);
-
-      return text.substring(startIndex + startIndexString.length, endIndex);
     }
 
   </script>
 </head>
 <body>
-<header>
-  <div class="tab tab-active" data-for="#map_canvas"  id="tab-map">kaart</div>
-  <div class="tab"            data-for="#page_stream" id="tab-stream">stream <div id="newPhotoCount">2</div></div>
-</header>
-<div class="page" id="map_canvas"></div>
-<div class="page" id="page_stream"></div>
+
+  <header>
+    <div data-for="#map_canvas"  id="tab-map"    class="tab tab-active">kaart</div>
+    <div data-for="#page_stream" id="tab-stream" class="tab">stream <div id="newPhotoCount"></div></div>
+  </header>
+
+  <div class="page" id="map_canvas"></div>
+  <div class="page" id="page_stream"></div>
+
 </body>
 </html>

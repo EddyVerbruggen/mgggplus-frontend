@@ -163,3 +163,20 @@ function showAlert(txt) {
     alert(txt);
   }
 }
+
+function sanitiseKmlContent(text) {
+  // replace all (relative) links (/g for global), so the links open correctly
+  text = text.replace(/\"\?projectId=/g, 'http://www.triodos.nl/nl/over-triodos-bank/mijngeldgaatgoed/resultaten/?projectId=');
+  // add a class to the first two divs, so we can style the meta info
+  text = text.replace(/<div>/, '<div class="metaInfo">');
+  return text.replace(/<div>/, '<div class="metaInfo">');
+}
+
+function extractProjectID(text) {
+  // 'text' contains stuff like this: <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><img src="http://projects.triodos.com/projects/nl/philosophy_of_life/3033_pola_van_der_donck_stichting/03033_L1040053.jpg" height="133" width="199"></a><a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank"><strong>Pola van der Donck Stichting</strong></a><div>Levensbeschouwing</div><div>Kampen, Nederland</div><div>In 1999 werd de Pola van der Donck Stichting opgericht. Deze stichting... <a href="?projectId=103145&amp;locationId=1905&amp;name=stichting" target="_blank">Meer&#187;</a></div>
+  var startIndexString = "?projectId=";
+  var startIndex = text.indexOf(startIndexString);
+  var endIndexString = "&amp;";
+  var endIndex = text.indexOf(endIndexString);
+  return text.substring(startIndex + startIndexString.length, endIndex);
+}
