@@ -154,7 +154,7 @@
       text = text.replace(/<div>/, '<div class="metaInfo">');
       var projectID = extractProjectID(text);
       var content = "<div class=\"triodosInfoWindow\">" + text + "</div>";
-      content += '<div class="camera">in de buurt? deel een foto! <a href="#" onclick="cameraIconClicked('+projectID+', $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
+      content += '<div class="camera">in de buurt? deel een foto <a href="#" onclick="cameraIconClicked('+projectID+', $(\'.triodosInfoWindow img\'))"><img src="images/camera.png" width="32px" height="32px"/></a></div>';
 
       if (infoPopup != null) {
         infoPopup.close();
@@ -183,7 +183,7 @@
             nav: true,
             speed: 500,
             maxwidth: 199,
-            namespace: "transparent-btns"
+            namespace: "centered-btns"
           })
         }
       });

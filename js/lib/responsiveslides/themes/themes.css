@@ -13,16 +13,16 @@
   z-index: 3;
   position: absolute;
   -webkit-tap-highlight-color: rgba(0,0,0,0);
-  top: 50%;
-  left: 0;
-  opacity: 0.7;
+  top: 34px;
+  left: 7px;
+  opacity: 0.4;
   text-indent: -9999px;
   overflow: hidden;
   text-decoration: none;
   height: 61px;
-  width: 38px;
+  width: 34px;
   background: transparent url("themes.gif") no-repeat left top;
-  margin-top: -45px;
+  margin-top: 0;
   }
 
 .centered-btns_nav:active {
@@ -32,7 +32,7 @@
 .centered-btns_nav.next {
   left: auto;
   background-position: right top;
-  right: 0;
+  right: 7px;
   }
 
 .transparent-btns_nav {
