@@ -123,6 +123,7 @@ function retrieveAndShowStreamImages(element) {
           content += '<img src="data:image/jpeg;base64,'+photo.content+'"/>';
         });
         $(that.html(content));
+        updateCountBubble(0);
       }
   );
 }
