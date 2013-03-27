@@ -89,7 +89,6 @@ function loadProjectPhotos(project) {
             $(".rslides").append('<li><img src="data:image/jpeg;base64,'+photo.content+'" width="200px"/></li>');
           });
           $('.rslides').responsiveSlides({
-            random: true,
             auto: false,
             pager: true,
             nav: true,

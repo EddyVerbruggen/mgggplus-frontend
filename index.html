@@ -56,11 +56,7 @@
     });
 
     function determineGeo() {
-      navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError, {
-        timeout: 6000,
-        enableHighAccuracy: false,
-        maximumAge: 60000
-      });
+      navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);
     }
 
     function onGeoError(error) {
