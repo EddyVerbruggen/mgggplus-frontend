@@ -156,6 +156,17 @@ function openWindow(pleaseTakeMeHere) {
   });
 }
 
+
+function forceUseOfInAppBrowser(anchors) {
+  $(anchors).each(function(i, anchor) {
+    $(anchor).attr('onclick', "openWindow(\'"+anchor.href+"\')");
+    // the href tag is replaced by a #
+    $(anchor).attr('href', "#");
+    // remove target="_blank"
+    $(anchor).attr('target', null);
+  });
+}
+
 function showAlert(txt) {
   if (isMobile()) {
     navigator.notification.alert(txt, function(){}, "Melding");

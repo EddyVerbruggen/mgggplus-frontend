@@ -62,8 +62,7 @@
   <preference name="android-installLocation" value="auto" /><!-- preferExternal; preferably install on SD-card -->
   <preference name="show-splash-screen-spinner" value="false" />
   <preference name="stay-in-webview" value="true" />
-  <preference name="auto-hide-splash-screen" value="true" /><!-- we're not hiding it with js -->
-  <preference name="splash-screen-duration" value="2500" /> <!-- default 5000 -->
+  <preference name="auto-hide-splash-screen" value="false" /><!-- we're hiding it with js -->
   <preference name="exit-on-suspend" value="true" />
 
   <!-- allow loading any url in the webview -->

@@ -12,9 +12,8 @@
   <script src="js/camera.js"></script>
   <script src="http://maps.googleapis.com/maps/api/js?sensor=true&language=nl&region=NL"></script>
   <script src="js/camera.js"></script>
-  <script src="js/mapfunctions.js"></script><!-- TODO move some geo stuff to this file -->
-  <script src="phonegap.js"></script>
   <script src="js/lib/responsiveslides/responsiveslides.min.js" defer="defer"></script>
+  <script src="phonegap.js"></script>
   <script type="text/javascript">
     "use strict";
 
@@ -61,9 +60,7 @@
     function onGeoError(error) {
       // just show some default location (Zeist)
       map.setCenter(new google.maps.LatLng(52.091195, 5.241208));
-      if (isMobile()) {
-        showAlert("Geolocation ging de mist in: " + error);
-      }
+      showAlert("Geolocation ging de mist in: " + error);
     }
 
     function onGeoSuccess(position) {
@@ -78,49 +75,49 @@
     }
 
     function onDeviceReady() {
-
+      resizePage();
       checkForNewPhotos();
 
-      // start loading the map after a little delay to give the device the time to load the header (otherwise the screen is blank until the map is loaded)
-      setTimeout(function () {
-
-        resizePage();
-
-        map = new google.maps.Map(document.getElementById("map_canvas"),
-            {
-              mapTypeId: google.maps.MapTypeId.ROADMAP,
-              disableDefaultUI: true,
-              zoomControl: true,
-              zoomControlOptions: {
-                position: google.maps.ControlPosition.LEFT_BOTTOM
-              },
-              streetViewControl: true,
-              streetViewControlOptions: {
-                position: (isIOS() ? google.maps.ControlPosition.LEFT_BOTTOM : google.maps.ControlPosition.RIGHT_BOTTOM)
-              }
-            });
-
-        // Load the KML file (cached by Google)
-        var ctaLayer = new google.maps.KmlLayer(
-            'http://www.triodos.nl/projects.kml?hostPrefix=nl&country=nl&lang=nl',
-            {
-              suppressInfoWindows: true, // suppress the default popup, so we can manipulate its contents
-              map: map
-            });
-
-        // add a click handler to the markers of the KML file
-        google.maps.event.addListener(ctaLayer, 'click', function (kmlEvent) {
-          showInfoWindowWithKMLContent(kmlEvent.featureData.description, kmlEvent.latLng);
-        });
-
-        // after the KML file is loaded, determine geolocation and set zoomlevel of the user
-        google.maps.event.addListenerOnce(ctaLayer, "defaultviewport_changed", function () {
-          google.maps.event.addListenerOnce(map, "bounds_changed", function () {
-            determineGeo();
-            map.setZoom(12); // lower number = wider view
+      // draw the Google Map
+      map = new google.maps.Map(document.getElementById("map_canvas"),
+          {
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            disableDefaultUI: true,
+            zoomControl: true,
+            zoomControlOptions: {
+              position: google.maps.ControlPosition.LEFT_BOTTOM
+            },
+            streetViewControl: true,
+            streetViewControlOptions: {
+              position: (isIOS() ? google.maps.ControlPosition.LEFT_BOTTOM : google.maps.ControlPosition.RIGHT_BOTTOM)
+            }
           });
+
+      // Load the KML file (cached by Google)
+      var ctaLayer = new google.maps.KmlLayer(
+          'http://www.triodos.nl/projects.kml?hostPrefix=nl&country=nl&lang=nl',
+          {
+            map: map,
+            suppressInfoWindows: true // suppress the default popup, so we can manipulate its contents
+          });
+
+      // add a click handler to the markers of the KML file
+      google.maps.event.addListener(ctaLayer, 'click', function (kmlEvent) {
+        showInfoWindowWithKMLContent(kmlEvent.featureData.description, kmlEvent.latLng);
+      });
+
+      // after the KML file is loaded, determine geolocation and set zoomlevel of the user
+      google.maps.event.addListenerOnce(ctaLayer, "defaultviewport_changed", function () {
+        google.maps.event.addListenerOnce(map, "bounds_changed", function () {
+          determineGeo();
+          map.setZoom(12); // lower number = wider view
         });
-      }, 500);
+      });
+
+      // hide the splashscreen when the device is ready, but wait a bit for the Google Map to load
+      setTimeout(function() {
+        navigator.splashscreen.hide();
+      }, 2000);
     }
 
     function showInfoWindowWithKMLContent(text, latlng) {
@@ -148,18 +145,11 @@
       });
 
       // rewrite any links in the popup to use the InAppBrowser
-      $('.triodosInfoWindow a').each(function(i, anchor) {
-        $(anchor).attr('onclick', "openWindow(\'"+anchor.href+"\')");
-        // the href tag is replaced by a #
-        $(anchor).attr('href', "#");
-        // remove target="_blank"
-        $(anchor).attr('target', null);
-      });
+      forceUseOfInAppBrowser('.triodosInfoWindow a');
 
       // check for project-specific photos
       loadProjectPhotos(projectID);
     }
-
   </script>
 </head>
 <body>
