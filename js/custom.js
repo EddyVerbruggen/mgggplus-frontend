@@ -69,10 +69,10 @@ function checkForNewPhotos() {
       true,
       function(data) {
         updateCountBubble(data);
+        // watch the stream for new items every x milliseconds (poor man's websocket)
+        setTimeout(checkForNewPhotos, 10000);
       }
   );
-  // watch the stream for new items every x milliseconds (poor man's websocket)
-  setTimeout(checkForNewPhotos, 11000);
 }
 
 function loadProjectPhotos(project) {
