@@ -63,16 +63,16 @@ function invokeRemote(method, url, data, async, successFunction) {
   });
 }
 
-// watch the stream for new items every 10 seconds (poor man's websocket)
 function checkForNewPhotos() {
   doGet(
       getServiceURL("/photo/newitemcount/" + getLastSeenPhotoID()),
       true,
       function(data) {
         updateCountBubble(data);
-        setTimeout(checkForNewPhotos, 10000);
       }
   );
+  // watch the stream for new items every x milliseconds (poor man's websocket)
+  setTimeout(checkForNewPhotos, 11000);
 }
 
 function loadProjectPhotos(project) {
@@ -124,7 +124,7 @@ function retrieveAndShowStreamImages(element) {
           // add a nice animation to the new images
           content += '<img ';
           if (photo.id > lastSeenPhotoID) {
-            content += 'class="animated fadeInDownBig" ';
+            content += 'class="animated fadeInLeftBig" ';
           }
           content += 'src="data:image/jpeg;base64,'+photo.content+'"/>';
         });

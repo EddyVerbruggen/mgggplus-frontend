@@ -78,8 +78,6 @@
     }
 
     function onDeviceReady() {
-      checkForNewPhotos();
-
       // draw the Google Map
       map = new google.maps.Map(document.getElementById("map_canvas"),
           {
@@ -116,12 +114,14 @@
         });
       });
 
-      // hide the splashscreen when the device is ready, but wait a bit for the Google Map to load
-      if (isMobile()) {
-        setTimeout(function() {
+      setTimeout(function() {
+        // hide the splashscreen when the device is ready, but wait a bit for the Google Map to load
+        if (isMobile()) {
           navigator.splashscreen.hide();
-        }, 2000);
-      }
+        }
+        // checking after hide, so the animation will show
+        checkForNewPhotos();
+      }, 2000);
     }
 
     function showInfoWindowWithKMLContent(text, latlng) {
