@@ -115,12 +115,18 @@ function retrieveAndShowStreamImages(element) {
         localStorage.setItem("storedImages", JSON.stringify(newImages));
 
         var content = '<div class="stream-description">Hier vindt u de meest recente project afbeeldingen gemaakt door klanten van Triodos Bank. Op de kaart kunt u zelf een foto toevoegen door een project aan te klikken en op het foto icoontje te drukken.</div>';
+        var lastSeenPhotoID = getLastSeenPhotoID();
+
+        // the first item is the newest, so remember its ID
+        setLastSeenPhotoID($(newImages)[0].id);
+
         $(newImages).each(function (i, photo) {
-          // the first item is the newest, so remember its ID
-          if (i==0) {
-            setLastSeenPhotoID(photo.id);
+          // add a nice animation to the new images
+          content += '<img ';
+          if (photo.id > lastSeenPhotoID) {
+            content += 'class="animated fadeInDownBig" ';
           }
-          content += '<img src="data:image/jpeg;base64,'+photo.content+'"/>';
+          content += 'src="data:image/jpeg;base64,'+photo.content+'"/>';
         });
         $(that.html(content));
         updateCountBubble(0);
@@ -129,9 +135,15 @@ function retrieveAndShowStreamImages(element) {
 }
 
 function updateCountBubble(items) {
-  $("#newPhotoCount")
-      .html(items)
-      .css({'visibility':(items==0 ? 'hidden' : 'visible')});
+  if (items == 0) {
+    $("#newPhotoCount")
+        .removeClass("visible animated fadeInRight")
+        .hide();
+  } else {
+    $("#newPhotoCount")
+        .html(items)
+        .addClass("visible animated fadeInRight");
+  }
 }
 
 function setLastSeenPhotoID(id) {

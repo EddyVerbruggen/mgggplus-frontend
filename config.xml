@@ -60,6 +60,7 @@
   <preference name="ios-statusbarstyle" value="black-opaque"/>
   <preference name="android-minSdkVersion" value="8" />
   <preference name="android-installLocation" value="auto" /><!-- preferExternal; preferably install on SD-card -->
+  <preference name="prerendered-icon" value="true" /><!-- iOS: don't add gloss effect -->
   <preference name="show-splash-screen-spinner" value="false" />
   <preference name="stay-in-webview" value="true" />
   <preference name="auto-hide-splash-screen" value="false" /><!-- we're hiding it with js -->

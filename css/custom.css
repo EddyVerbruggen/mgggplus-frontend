@@ -133,3 +133,7 @@ header .tab:last-child {
   font-weight: bold;
   visibility: hidden;
 }
+
+.visible {
+  visibility: visible !important;
+}

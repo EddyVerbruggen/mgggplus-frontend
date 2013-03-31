@@ -6,6 +6,7 @@
   <title>MGGG Plus</title>
   <link rel="stylesheet" href="js/lib/responsiveslides/responsiveslides.css" type="text/css" media="screen" />
   <link rel="stylesheet" href="js/lib/responsiveslides/themes/themes.css" type="text/css" media="screen" />
+  <link rel="stylesheet" href="css/animate.min.css" type="text/css"/>
   <link rel="stylesheet" href="css/custom.css" type="text/css"/>
   <script src="js/lib/jquery-1.9.1.min.js"></script>
   <script src="js/custom.js"></script>
@@ -20,6 +21,8 @@
     var map, infoWindow = null;
 
     $(document).ready(function () {
+      resizePage();
+
       // init phonegap
       if (isMobile()) {
         document.addEventListener('deviceready', onDeviceReady, false);
@@ -75,7 +78,6 @@
     }
 
     function onDeviceReady() {
-      resizePage();
       checkForNewPhotos();
 
       // draw the Google Map
@@ -115,9 +117,11 @@
       });
 
       // hide the splashscreen when the device is ready, but wait a bit for the Google Map to load
-      setTimeout(function() {
-        navigator.splashscreen.hide();
-      }, 2000);
+      if (isMobile()) {
+        setTimeout(function() {
+          navigator.splashscreen.hide();
+        }, 2000);
+      }
     }
 
     function showInfoWindowWithKMLContent(text, latlng) {
