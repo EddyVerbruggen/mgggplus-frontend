@@ -2,7 +2,7 @@
 
 // generic catch for errors
 window.onerror = function(message, file, line) {
-  showAlert('Error gevangen: ' + file + ':' + line + '\n' + message);
+  alert('Error gevangen: ' + file + ':' + line + '\n' + message);
   console.log('Error gevangen: ' + file + ':' + line + '\n' + message);
 };
 

@@ -1,11 +1,11 @@
 "use strict";
 
-var clickedImage, sourceType, project = null;
+var sourceType, project = null;
 
 function captureImage() {
   navigator.camera.getPicture(onSuccessCamera, onFailCamera, {
     quality:50,
-    allowEdit:false, // ignored by Android (testing false, because may solve square imgs @ ios)
+    allowEdit:false, // ignored by Android and when true: iOS images are square
     destinationType:Camera.DestinationType.DATA_URL, // base64
     encodingType:Camera.EncodingType.JPEG,
     sourceType:sourceType, // camera or photoroll, depending on user choice
@@ -15,7 +15,6 @@ function captureImage() {
 }
 
 function onSuccessCamera(imageData) {
-//  showAlert('We slaan een foto op bij project: ' + project);
   doPost(
     getServiceURL("/photo/save"),
     {
@@ -24,11 +23,7 @@ function onSuccessCamera(imageData) {
     },
     true,
     function(data) {
-      // change the image in the view
       showAlert("De afbeelding is met groot succes opgeslagen op de server!");
-      // show the image immediately
-      $(clickedImage).attr('src', "data:image/jpeg;base64," + imageData);
-//      loadProjectPhotos(project);
     }
   );
 }
@@ -39,10 +34,8 @@ function onFailCamera(message) {
   }
 }
 
-function cameraIconClicked(projectID, theElement) {
-//  alert('clicked project: ' + projectID);
+function cameraIconClicked(projectID) {
   project = projectID;
-  clickedImage = theElement;
 
   if (isMobile()) {
     navigator.notification.confirm(
@@ -53,7 +46,6 @@ function cameraIconClicked(projectID, theElement) {
     );
   } else {
     alert("Dit kan alleen op mobiel");
-//    loadProjectPhotos(project);
   }
 }
 
