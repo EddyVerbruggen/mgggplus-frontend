@@ -107,28 +107,30 @@ function retrieveAndShowStreamImages() {
   if (storedImages != null) {
     $("#stream-content").html(getPhotoStreamContent(storedImages));
   }
-  doGet(
-      getServiceURL("/photo/newitems/"+getLastSeenPhotoID()),
-      true,
-      function(data) {
-        if (data != "") {
-          var newImages = data;
+  setTimeout(function() {
+    doGet(
+        getServiceURL("/photo/newitems/"+getLastSeenPhotoID()),
+        true,
+        function(data) {
+          if (data != "") {
+            var newImages = data;
 
-          // the first item is the newest, so remember its ID
-          setLastSeenPhotoID($(newImages)[0].id);
+            // the first item is the newest, so remember its ID
+            setLastSeenPhotoID($(newImages)[0].id);
 
-          $("#stream-content").prepend(getPhotoStreamContent(newImages, "animated fadeInLeftBig"));
+            $("#stream-content").prepend(getPhotoStreamContent(newImages, "animated fadeInLeftBig"));
 
-          updateCountBubble(0);
+            updateCountBubble(0);
 
-          // save it for later use
-          if (storedImages != null) {
-            newImages = $.merge(newImages, storedImages);
+            // save it for later use
+            if (storedImages != null) {
+              newImages = $.merge(newImages, storedImages);
+            }
+            localStorage.setItem("storedImages", JSON.stringify(newImages));
           }
-          localStorage.setItem("storedImages", JSON.stringify(newImages));
         }
-      }
-  );
+    );
+  }, 250)
 }
 
 function getPhotoStreamContent(photos, styleClass) {
