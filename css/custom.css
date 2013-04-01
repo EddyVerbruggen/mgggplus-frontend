@@ -99,7 +99,7 @@ header .tab:last-child {
   max-height: 75px;
 }
 
-#page_stream .stream-description {
+#stream-description {
   color: #fff;
   font-size: 0.8em;
   text-align: justify;

@@ -47,7 +47,7 @@
 
       // refresh the stream when its tab is clicked
       $("#page_stream").bind("click", function() {
-        retrieveAndShowStreamImages(this);
+        retrieveAndShowStreamImages();
       });
 
       // refresh the map when its tab is clicked
@@ -164,7 +164,10 @@
   </header>
 
   <div class="page" id="map_canvas"></div>
-  <div class="page" id="page_stream"></div>
+  <div class="page" id="page_stream">
+    <div id="stream-description">Hier vindt u de meest recente project afbeeldingen gemaakt door klanten van Triodos Bank. Op de kaart kunt u zelf een foto toevoegen door een project aan te klikken en op het foto icoontje te drukken.</div>
+    <div id="stream-content"></div>
+  </div>
 
 </body>
 </html>

@@ -101,37 +101,42 @@ function loadProjectPhotos(project) {
   );
 }
 
-function retrieveAndShowStreamImages(element) {
-  var that = $(element);
+function retrieveAndShowStreamImages() {
+  // immediately show what we've stored locally, then go to the server for any new stuff
+  var storedImages = JSON.parse(localStorage.getItem("storedImages", "animated fadeIn"));
+  if (storedImages != null) {
+    $("#stream-content").html(getPhotoStreamContent(storedImages));
+  }
   doGet(
       getServiceURL("/photo/newitems/"+getLastSeenPhotoID()),
       true,
       function(data) {
-        var newImages = data;
-        var storedImages = JSON.parse(localStorage.getItem("storedImages"));
-        if (storedImages != null) {
-          newImages = $.merge(data, storedImages);
-        }
-        localStorage.setItem("storedImages", JSON.stringify(newImages));
+        if (data != "") {
+          var newImages = data;
 
-        var content = '<div class="stream-description">Hier vindt u de meest recente project afbeeldingen gemaakt door klanten van Triodos Bank. Op de kaart kunt u zelf een foto toevoegen door een project aan te klikken en op het foto icoontje te drukken.</div>';
-        var lastSeenPhotoID = getLastSeenPhotoID();
+          // the first item is the newest, so remember its ID
+          setLastSeenPhotoID($(newImages)[0].id);
 
-        // the first item is the newest, so remember its ID
-        setLastSeenPhotoID($(newImages)[0].id);
+          $("#stream-content").prepend(getPhotoStreamContent(newImages, "animated fadeInLeftBig"));
 
-        $(newImages).each(function (i, photo) {
-          // add a nice animation to the new images
-          content += '<img ';
-          if (photo.id > lastSeenPhotoID) {
-            content += 'class="animated fadeInLeftBig" ';
+          updateCountBubble(0);
+
+          // save it for later use
+          if (storedImages != null) {
+            newImages = $.merge(newImages, storedImages);
           }
-          content += 'src="data:image/jpeg;base64,'+photo.content+'"/>';
-        });
-        $(that.html(content));
-        updateCountBubble(0);
+          localStorage.setItem("storedImages", JSON.stringify(newImages));
+        }
       }
   );
+}
+
+function getPhotoStreamContent(photos, styleClass) {
+  var content = "";
+  $(photos).each(function (i, photo) {
+    content += '<img class="' + styleClass + '"' + 'src="data:image/jpeg;base64,' + photo.content + '"/>';
+  });
+  return content;
 }
 
 function updateCountBubble(items) {
