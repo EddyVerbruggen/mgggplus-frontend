@@ -1,5 +1,7 @@
 "use strict";
 
+// TODO strip for workshop
+
 var sourceType, project = null;
 
 function captureImage() {
@@ -45,7 +47,7 @@ function cameraIconClicked(projectID) {
         'Foto maken,Foto kiezen,Annuleren'  // buttonLabels
     );
   } else {
-    alert("Dit kan alleen op mobiel");
+    showAlert("Dit kan alleen op mobiel");
   }
 }
 

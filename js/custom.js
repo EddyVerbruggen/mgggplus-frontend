@@ -63,6 +63,7 @@ function invokeRemote(method, url, data, async, successFunction) {
   });
 }
 
+// TODO strip for workshop
 function checkForNewPhotos() {
   doGet(
       getServiceURL("/photo/newitemcount/" + getLastSeenPhotoID()),
@@ -75,30 +76,35 @@ function checkForNewPhotos() {
   );
 }
 
-function loadProjectPhotos(project) {
+// TODO strip for workshop
+function loadProjectPhotos(project, successFunction) {
   doGet(
       getServiceURL("/photo/load/project/" + project),
       true,
       function(data) {
-        if (data != "") {
-          $(".triodosInfoWindow img")
-              .unwrap('<a/>')
-              .wrap('<ul class="rslides"/>')
-              .wrap('<li/>');
-          $(data).each(function(index, photo) {
-            $(".rslides").append('<li><img src="data:image/jpeg;base64,'+photo.content+'" width="200px"/></li>');
-          });
-          $('.rslides').responsiveSlides({
-            auto: false,
-            pager: true,
-            nav: true,
-            speed: 500,
-            maxwidth: 200,
-            namespace: "centered-btns"
-          });
-        }
+        successFunction(data);
       }
   );
+}
+
+function onLoadProjectPhotosSuccess(data) {
+  if (data != "") {
+    $(".triodosInfoWindow img")
+        .unwrap('<a/>')
+        .wrap('<ul class="rslides"/>')
+        .wrap('<li/>');
+    $(data).each(function(index, photo) {
+      $(".rslides").append('<li><img src="data:image/jpeg;base64,'+photo.content+'" width="200px"/></li>');
+    });
+    $('.rslides').responsiveSlides({
+      auto: false,
+      pager: true,
+      nav: true,
+      speed: 500,
+      maxwidth: 200,
+      namespace: "centered-btns"
+    });
+  }
 }
 
 function retrieveAndShowStreamImages() {
@@ -140,13 +146,14 @@ function getPhotoStreamContent(photos, styleClass) {
 }
 
 function updateCountBubble(items) {
+  var classNames = "visible animated fadeInRight";
   if (items == 0) {
     $("#newPhotoCount")
-        .removeClass("visible animated fadeInRight");
+        .removeClass(classNames);
   } else {
     $("#newPhotoCount")
         .html(items)
-        .addClass("visible animated fadeInRight");
+        .addClass(classNames);
   }
 }
 
@@ -183,6 +190,7 @@ function forceUseOfInAppBrowser(anchors) {
   });
 }
 
+// TODO strip for workshop
 function showAlert(txt) {
   if (isMobile()) {
     navigator.notification.alert(txt, function(){}, "Melding");

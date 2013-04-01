@@ -24,6 +24,7 @@
       resizePage();
 
       // init phonegap
+      // TODO strip for workshop
       if (isMobile()) {
         document.addEventListener('deviceready', onDeviceReady, false);
       } else {
@@ -63,14 +64,6 @@
       navigator.geolocation.getCurrentPosition(onGeoSuccess, onGeoError);
     }
 
-    function onGeoError(error) {
-      // just show some default location (Zeist)
-      map.setCenter(new google.maps.LatLng(52.091195, 5.241208));
-      if (isMobile()) {
-        showAlert("Geolocation ging de mist in: " + error);
-      }
-    }
-
     function onGeoSuccess(position) {
       var initialLocation = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
       map.setCenter(initialLocation);
@@ -80,6 +73,14 @@
         map: map,
         icon: 'images/mylocation-x1.png'
       }).setPosition(initialLocation);
+    }
+
+    function onGeoError(error) {
+      // just show some default location (Zeist)
+      map.setCenter(new google.maps.LatLng(52.091195, 5.241208));
+      if (isMobile()) {
+        showAlert("Geolocation ging de mist in: " + error);
+      }
     }
 
     function onDeviceReady() {
@@ -157,7 +158,7 @@
       forceUseOfInAppBrowser('.triodosInfoWindow a');
 
       // check for project-specific photos
-      loadProjectPhotos(projectID);
+      loadProjectPhotos(projectID, onLoadProjectPhotosSuccess);
     }
   </script>
 </head>
