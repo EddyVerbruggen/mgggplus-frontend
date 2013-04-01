@@ -47,10 +47,10 @@
 
       // refresh the stream when its tab is clicked
       $("#page_stream").bind("click", function() {
-//        // add a little timeout, so the tab is rendered before heavy processing is done
-//        setTimeout(function() {
+        // add a little timeout, so the tab is rendered before heavy processing is done
+        setTimeout(function() {
           retrieveAndShowStreamImages();
-//        }, 250)
+        }, 250)
       });
 
       // refresh the map when its tab is clicked
