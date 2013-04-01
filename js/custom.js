@@ -137,8 +137,7 @@ function retrieveAndShowStreamImages(element) {
 function updateCountBubble(items) {
   if (items == 0) {
     $("#newPhotoCount")
-        .removeClass("visible animated fadeInRight")
-        .hide();
+        .removeClass("visible animated fadeInRight");
   } else {
     $("#newPhotoCount")
         .html(items)
