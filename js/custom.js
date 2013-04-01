@@ -103,7 +103,7 @@ function loadProjectPhotos(project) {
 
 function retrieveAndShowStreamImages() {
   // immediately show what we've stored locally, then go to the server for any new stuff
-  var storedImages = JSON.parse(localStorage.getItem("storedImages", "animated fadeIn"));
+  var storedImages = JSON.parse(localStorage.getItem("storedImages"));
   if (storedImages != null) {
     $("#stream-content").html(getPhotoStreamContent(storedImages));
   }
