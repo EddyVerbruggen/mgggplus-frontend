@@ -1,10 +1,9 @@
 "use strict";
 
-// TODO strip for workshop
-
 var sourceType, project = null;
 
 function captureImage() {
+  // see http://docs.phonegap.com/en/2.5.0/cordova_camera_camera.md.html
   navigator.camera.getPicture(onSuccessCamera, onFailCamera, {
     quality:50,
     allowEdit:false, // ignored by Android and when true: iOS images are square
@@ -38,6 +37,7 @@ function cameraIconClicked(projectID) {
   project = projectID;
 
   if (isMobile()) {
+    // see http://docs.phonegap.com/en/2.5.0/cordova_notification_notification.md.html
     navigator.notification.confirm(
         'Deel een leuke foto van dit project. TIP: houd je telefoon horizontaal.', // message
         onConfirmNew, // callback to invoke with index of button pressed
