@@ -31,9 +31,7 @@ function onSuccessCamera(imageData) {
 }
 
 function onFailCamera(message) {
-  if (message == "no camera available") {
-    navigator.notification.alert("Er is geen geschikte camera gevonden.", {}, "Probleempje..", "Sluiten");
-  }
+  showAlert("Er is een probleem met de camera. Details: " + message);
 }
 
 function cameraIconClicked(projectID) {
@@ -52,7 +50,7 @@ function cameraIconClicked(projectID) {
 }
 
 function onConfirmNew(buttonIndex) {
-  if (buttonIndex == 1) {    // index starts at 1
+  if (buttonIndex == 1) { // index starts at 1
     sourceType = Camera.PictureSourceType.CAMERA;
     captureImage();
   } else if (buttonIndex == 2) {
