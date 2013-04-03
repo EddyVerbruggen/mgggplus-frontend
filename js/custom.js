@@ -63,28 +63,10 @@ function invokeRemote(method, url, data, async, successFunction) {
   });
 }
 
-// TODO strip for workshop
 function checkForNewPhotos() {
-  doGet(
-      getServiceURL("/photo/newitemcount/" + getLastSeenPhotoID()),
-      true,
-      function(data) {
-        updateCountBubble(data);
-        // watch the stream for new items every x milliseconds (poor man's websocket)
-        setTimeout(checkForNewPhotos, 10000);
-      }
-  );
 }
 
-// TODO strip for workshop
 function loadProjectPhotos(project, successFunction) {
-  doGet(
-      getServiceURL("/photo/load/project/" + project),
-      true,
-      function(data) {
-        successFunction(data);
-      }
-  );
 }
 
 function onLoadProjectPhotosSuccess(data) {
@@ -179,24 +161,8 @@ function openWindow(pleaseTakeMeHere) {
   });
 }
 
-
-function forceUseOfInAppBrowser(anchors) {
-  $(anchors).each(function(i, anchor) {
-    $(anchor).attr('onclick', "openWindow(\'"+anchor.href+"\')");
-    // the href tag is replaced by a #
-    $(anchor).attr('href', "#");
-    // remove target="_blank"
-    $(anchor).attr('target', null);
-  });
-}
-
-// TODO strip for workshop
 function showAlert(txt) {
-  if (isMobile()) {
-    navigator.notification.alert(txt, function(){}, "Melding");
-  } else {
-    alert(txt);
-  }
+  alert(txt);
 }
 
 function sanitiseKmlContent(text) {
