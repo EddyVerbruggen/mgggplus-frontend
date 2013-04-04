@@ -13,6 +13,7 @@
   <script src="js/camera.js"></script>
   <script src="http://maps.googleapis.com/maps/api/js?sensor=true&language=nl&region=NL"></script>
   <script src="js/lib/responsiveslides/responsiveslides.min.js" defer="defer"></script>
+  <script src="phonegap.js"></script>
   <script type="text/javascript">
     "use strict";
 
@@ -22,6 +23,11 @@
       resizePage();
 
       // TODO init PhoneGap here
+      if (isMobile()) {
+        document.addEventListener("deviceready", onDeviceReady, false);
+      } else {
+        onDeviceReady();
+      }
 
       // deal with clicks on the tabs
       $(".tab").bind("click", function() {
