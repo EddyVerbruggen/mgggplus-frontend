@@ -1,22 +1,22 @@
-
+"use strict";
 
 
 // assignment 1
-varWithoutVar = 1;
+var varWithoutVar = 1;
 
 
 
 
 // assignment 2
-var private = 1;
-var protected = 2;
-var interface = 3;
+var _private = 1;
+var _protected = 2;
+var _interface = 3;
 
 
 
 
 // assignment 3
-var number2 = 02;
+var number2 = 2;
 
 
 
@@ -24,8 +24,10 @@ var number2 = 02;
 // assignment 4
 function ikmag() {}
 
+function ikmagNiet() {}
+
 if (varWithoutVar == 1) {
-  function ikmagNiet() {}
+  ikmagNiet();
 }
 
 
@@ -36,7 +38,7 @@ var DummyObj = {
   dummyFunc: function(a) {
     return a;
   },
-  dummyFunc: function(a, a) {
-    return a*a;
+  dummyFunc2: function(a, b) {
+    return a*b;
   }
 };

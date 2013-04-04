@@ -35,19 +35,19 @@ function getServiceURL(servicePath) {
   }
 }
 
-function doPost(url, data, async, successFunction) {
-  invokeRemote('POST', url, data, async, successFunction);
+function doPost(url, payload, async, successFunction) {
+  invokeRemote('POST', url, payload, async, successFunction);
 }
 
 function doGet(url, async, successFunction) {
   invokeRemote('GET', url, null, async, successFunction);
 }
 
-function invokeRemote(method, url, data, async, successFunction) {
+function invokeRemote(method, url, payload, async, successFunction) {
   $.ajax({
     type : method,
     url  : url,
-    data : data,
+    data : payload,
     dataType : 'json',
     async: async,
     success : function(data) {
@@ -64,9 +64,23 @@ function invokeRemote(method, url, data, async, successFunction) {
 }
 
 function checkForNewPhotos() {
+  doGet(getServiceURL("/photo/newitemcount/" + getLastSeenPhotoID()),
+      true,
+      function(data) {
+        updateCountBubble(data);
+        setTimeout(checkForNewPhotos, 10000);
+      }
+  )
 }
 
 function loadProjectPhotos(project, successFunction) {
+  doGet(
+      getServiceURL("/photo/load/project/" + project),
+      true,
+      function(data) {
+        successFunction(data);
+      }
+  );
 }
 
 function onLoadProjectPhotosSuccess(data) {
