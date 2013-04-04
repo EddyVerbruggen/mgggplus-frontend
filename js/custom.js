@@ -64,9 +64,23 @@ function invokeRemote(method, url, data, async, successFunction) {
 }
 
 function checkForNewPhotos() {
+    doGet(getServiceURL("/photo/newitemcount/" + getLastSeenPhotoID()),
+        true,
+        function(data) {
+          updateCountBubble(data);
+          setTimeout(checkForNewPhotos, 10000);
+        }
+    )
 }
 
 function loadProjectPhotos(project, successFunction) {
+  doGet(
+      getServiceURL("/photo/load/project/" + project),
+      true,
+      function() {
+        successFunction(data);
+      }
+  )
 }
 
 function onLoadProjectPhotosSuccess(data) {
@@ -145,7 +159,7 @@ function setLastSeenPhotoID(id) {
 
 function getLastSeenPhotoID() {
   var lastSeenPhotoID = localStorage.getItem("lastSeenPhotoID");
-  if (lastSeenPhotoID != "undefined") {
+  if (lastSeenPhotoID != "undefined" && lastSeenPhotoID != null) {
     return lastSeenPhotoID;
   } else {
     return -1;
