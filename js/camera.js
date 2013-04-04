@@ -24,7 +24,8 @@ function onSuccessCamera(imageData) {
     },
     true,
     function(data) {
-      showAlert("De afbeelding is met groot succes opgeslagen op de server!");
+        var greatSuccess = imageData.byteLength > 1024;
+      showAlert("De afbeelding is met " + (greatSuccess ? " groot" : "") + " succes opgeslagen op de server!");
     }
   );
 }
