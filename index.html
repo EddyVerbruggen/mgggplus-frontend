@@ -152,7 +152,8 @@
         map: map
       });
 
-      // TODO rewrite any links in the popup to use the InAppBrowser
+      // rewrite any links in the popup to use the InAppBrowser
+      forceUseOfInAppBrowser('.triodosInfoWindow a');
 
       // check for project-specific photos
       loadProjectPhotos(projectID, onLoadProjectPhotosSuccess);

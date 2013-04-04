@@ -68,9 +68,10 @@ function checkForNewPhotos() {
       true,
       function(data) {
         updateCountBubble(data);
+        // watch the stream for new items every x milliseconds (poor man's websocket)
         setTimeout(checkForNewPhotos, 10000);
       }
-  )
+  );
 }
 
 function loadProjectPhotos(project, successFunction) {
@@ -175,8 +176,24 @@ function openWindow(pleaseTakeMeHere) {
   });
 }
 
+
+function forceUseOfInAppBrowser(anchors) {
+  $(anchors).each(function(i, anchor) {
+    $(anchor).attr('onclick', "openWindow(\'"+anchor.href+"\')");
+    // the href tag is replaced by a #
+    $(anchor).attr('href', "#");
+    // remove target="_blank"
+    $(anchor).attr('target', null);
+  });
+}
+
+// TODO strip for workshop
 function showAlert(txt) {
+  if (isMobile()) {
+    navigator.notification.alert(txt, function(){}, "Melding");
+  } else {
   alert(txt);
+  }
 }
 
 function sanitiseKmlContent(text) {

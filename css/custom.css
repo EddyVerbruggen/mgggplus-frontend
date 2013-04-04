@@ -106,6 +106,12 @@ header .tab:last-child {
   padding: 10px;
 }
 
+@media (min-width:720px) {
+  #page_stream img {
+    max-height: 150px;
+  }
+}
+
 #newPhotoCount {
   margin-left: 35%;
   position: absolute;
